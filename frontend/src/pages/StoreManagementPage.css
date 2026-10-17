@@ -1,0 +1,210 @@
+.store-root {
+  padding: 24px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #0f172a;
+  min-height: 100vh;
+  color: #e2e8f0;
+}
+
+.store-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 12px;
+  color: #94a3b8;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.store-spin { animation: spin 1s linear infinite; }
+
+.store-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.store-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.store-header-left h1 { margin: 0; font-size: 22px; font-weight: 700; }
+.store-header-left p { margin: 2px 0 0; font-size: 13px; color: #94a3b8; }
+
+.store-refresh-btn,
+.store-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  border: 1px solid #334155;
+}
+
+.store-refresh-btn { background: #1e293b; color: #e2e8f0; }
+.store-refresh-btn:hover { background: #334155; }
+.store-add-btn { background: #047857; border-color: #047857; color: #fff; }
+.store-add-btn:hover { background: #065f46; }
+
+.store-create-form {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.store-create-form h2 { margin: 0 0 18px; font-size: 16px; }
+
+.store-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.store-form-full { grid-column: 1 / -1; }
+
+.store-form-field { display: flex; flex-direction: column; gap: 6px; }
+.store-form-field label { font-size: 12px; color: #94a3b8; font-weight: 600; }
+.store-form-field input {
+  padding: 8px 12px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-size: 14px;
+}
+
+.store-save-btn {
+  padding: 10px 24px;
+  background: #047857;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+.store-save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.store-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.store-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 20px;
+  transition: border-color 0.2s;
+}
+
+.store-card:hover { border-color: #475569; }
+.store-card-inactive { opacity: 0.6; }
+
+.store-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.store-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.store-card-title h3 { margin: 0; font-size: 16px; font-weight: 700; }
+
+.store-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.store-dot-on { background: #10b981; }
+.store-dot-off { background: #64748b; }
+
+.store-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.store-kpi-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  color: #94a3b8;
+  font-size: 12px;
+  cursor: pointer;
+}
+.store-kpi-btn:hover { color: #e2e8f0; }
+
+.store-toggle-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.store-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.store-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.store-meta-address { font-size: 12px; }
+.store-meta-gst { font-family: monospace; font-size: 12px; }
+
+.store-kpi-panel {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #334155;
+}
+
+.store-kpi-error { font-size: 12px; color: #ef4444; }
+
+.store-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.store-kpi-tile {
+  background: #0f172a;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.store-kpi-val { font-size: 18px; font-weight: 700; color: #e2e8f0; }
+.store-kpi-label { font-size: 11px; color: #64748b; }

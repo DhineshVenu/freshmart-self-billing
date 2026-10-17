@@ -1,0 +1,398 @@
+.bill-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.bill-modal-card {
+  background: #ffffff;
+  color: #1e293b;
+  border-radius: 16px;
+  max-width: 540px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 24px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+  font-family: monospace, system-ui, -apple-system, sans-serif;
+}
+
+.bill-modal-top-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.bill-modal-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.shield-icon {
+  color: #047857;
+  font-size: 16px;
+}
+
+.top-action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.print-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #0284c7;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.close-bill-btn {
+  background: #f1f5f9;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.receipt-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.receipt-header h2 {
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0 0 4px 0;
+  color: #0f172a;
+  letter-spacing: 0.05em;
+}
+
+.store-address {
+  font-size: 11px;
+  color: #64748b;
+  margin: 0 0 6px 0;
+}
+
+.receipt-type-tag {
+  display: inline-block;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.receipt-meta-grid {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  background: #f8fafc;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.receipt-meta-grid .text-right {
+  text-align: right;
+}
+
+.status-pill {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 10px;
+}
+
+.status-pill.paid {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-pill.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.receipt-items-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+
+.receipt-items-table th {
+  border-bottom: 2px solid #e2e8f0;
+  padding: 8px 4px;
+  text-align: left;
+  color: #475569;
+}
+
+.receipt-items-table td {
+  border-bottom: 1px solid #f1f5f9;
+  padding: 8px 4px;
+}
+
+.item-name {
+  font-weight: 600;
+}
+
+.item-barcode {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.receipt-totals-section {
+  border-top: 2px dashed #cbd5e1;
+  padding-top: 12px;
+  margin-bottom: 16px;
+}
+
+.totals-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 4px;
+  color: #475569;
+}
+
+.totals-row.grand-total {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 8px;
+  margin-top: 8px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.receipt-footer-details {
+  text-align: center;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 12px;
+}
+
+.verified-seal {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  padding: 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.check-seal-icon {
+  font-size: 24px;
+}
+
+.pending-seal {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.thank-you-msg {
+  font-size: 11px;
+  color: #64748b;
+  margin: 0;
+}
+
+.bill-bottom-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.confirm-payment-action-btn {
+  background: #047857;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.close-full-btn {
+  background: #e2e8f0;
+  color: #334155;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Email Receipt Card */
+.email-receipt-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-top: 14px;
+  text-align: left;
+}
+
+.email-receipt-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 8px;
+}
+
+.mail-icon {
+  color: #0284c7;
+  font-size: 14px;
+}
+
+.email-receipt-form {
+  display: flex;
+  gap: 8px;
+}
+
+.email-input-field {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 12px;
+  outline: none;
+  font-family: inherit;
+  background: #ffffff;
+}
+
+.email-input-field:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+}
+
+.send-email-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #0f172a;
+  color: #ffffff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease;
+}
+
+.send-email-btn:hover:not(:disabled) {
+  background: #334155;
+}
+
+.send-email-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.email-feedback-box {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+}
+
+.email-feedback-box.success {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.email-feedback-box.error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.feedback-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.feedback-check {
+  font-size: 14px;
+  color: #16a34a;
+}
+
+.preview-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  color: #0284c7;
+  text-decoration: underline;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.preview-link:hover {
+  color: #0369a1;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .bill-modal-overlay {
+    position: absolute;
+    background: none;
+    padding: 0;
+  }
+  .bill-modal-card {
+    box-shadow: none;
+    max-width: 100%;
+  }
+}

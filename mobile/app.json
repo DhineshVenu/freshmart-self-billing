@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "Fresh Mart",
+    "slug": "freshmart-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0f172a"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.freshmart.selfbilling",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Fresh Mart needs camera access to scan product barcodes.",
+        "NSPhotoLibraryUsageDescription": "Fresh Mart needs photo library access for barcode scanning."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0f172a"
+      },
+      "package": "com.freshmart.selfbilling",
+      "permissions": ["CAMERA", "VIBRATE"]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "scheme": "freshmart",
+    "plugins": [
+      [
+        "expo-camera",
+        { "cameraPermission": "Allow Fresh Mart to access your camera to scan barcodes." }
+      ]
+    ]
+  }
+}

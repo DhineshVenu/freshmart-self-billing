@@ -1,0 +1,31 @@
+/.kiro
+/.vscode
+
+# Dependencies
+node_modules/
+
+# Local secrets and environment overrides
+.env
+.env.*
+!.env.example
+
+# Generated application output
+dist/
+dist-webpack/
+build/
+coverage/
+*.tsbuildinfo
+
+# Local mobile tooling state
+.expo/
+
+# Logs and operating-system noise
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Local-only integration configuration
+/docs/mcp-config.json

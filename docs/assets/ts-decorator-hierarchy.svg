@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 320" width="100%" height="320" style="background:#0f172a; border-radius:12px; font-family:system-ui, sans-serif;">
+  <text x="425" y="30" fill="#38bdf8" font-size="16" font-weight="bold" text-anchor="middle">TYPESCRIPT DECORATOR ARCHITECTURE &amp; TARGETS</text>
+
+  <rect x="275" y="50" width="300" height="45" rx="8" fill="#1e40af" stroke="#60a5fa" stroke-width="2"/>
+  <text x="425" y="78" fill="#ffffff" font-size="13" font-weight="bold" text-anchor="middle">@DecoratorFactory(args) &#8594; Decorator</text>
+
+  <path d="M 425 95 L 425 125" stroke="#60a5fa" stroke-width="2"/>
+  <path d="M 115 125 L 735 125" stroke="#60a5fa" stroke-width="2"/>
+
+  <!-- 5 Targets -->
+  <path d="M 115 125 L 115 150" stroke="#60a5fa" stroke-width="2"/>
+  <rect x="30" y="150" width="170" height="145" rx="8" fill="#1e293b" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="115" y="172" fill="#60a5fa" font-size="11" font-weight="bold" text-anchor="middle">1. Class Decorator</text>
+  <text x="40" y="195" fill="#f8fafc" font-size="10">@ApiController(path)</text>
+  <text x="40" y="215" fill="#94a3b8" font-size="9">Target: constructor</text>
+  <text x="40" y="235" fill="#cbd5e1" font-size="9">Purpose: Route setup,</text>
+  <text x="40" y="250" fill="#cbd5e1" font-size="9">dependency injection,</text>
+  <text x="40" y="265" fill="#cbd5e1" font-size="9">class metadata</text>
+
+  <path d="M 270 125 L 270 150" stroke="#60a5fa" stroke-width="2"/>
+  <rect x="185" y="150" width="170" height="145" rx="8" fill="#1e293b" stroke="#10b981" stroke-width="1.5"/>
+  <text x="270" y="172" fill="#34d399" font-size="11" font-weight="bold" text-anchor="middle">2. Method Decorator</text>
+  <text x="195" y="195" fill="#f8fafc" font-size="10">@AuditAction(name)</text>
+  <text x="195" y="215" fill="#94a3b8" font-size="9">Target: descriptor.value</text>
+  <text x="195" y="235" fill="#cbd5e1" font-size="9">Purpose: Latency timer,</text>
+  <text x="195" y="250" fill="#cbd5e1" font-size="9">auto audit logging,</text>
+  <text x="195" y="265" fill="#cbd5e1" font-size="9">error wrapping</text>
+
+  <path d="M 425 125 L 425 150" stroke="#60a5fa" stroke-width="2"/>
+  <rect x="340" y="150" width="170" height="145" rx="8" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+  <text x="425" y="172" fill="#c084fc" font-size="11" font-weight="bold" text-anchor="middle">3. Property Decorator</text>
+  <text x="350" y="195" fill="#f8fafc" font-size="10">@IsBarcode()</text>
+  <text x="350" y="215" fill="#94a3b8" font-size="9">Target: target, key</text>
+  <text x="350" y="235" fill="#cbd5e1" font-size="9">Purpose: Getter/setter,</text>
+  <text x="350" y="250" fill="#cbd5e1" font-size="9">format validation,</text>
+  <text x="350" y="265" fill="#cbd5e1" font-size="9">schema tagging</text>
+
+  <path d="M 580 125 L 580 150" stroke="#60a5fa" stroke-width="2"/>
+  <rect x="495" y="150" width="170" height="145" rx="8" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="580" y="172" fill="#fbbf24" font-size="11" font-weight="bold" text-anchor="middle">4. Accessor Decorator</text>
+  <text x="505" y="195" fill="#f8fafc" font-size="10">@FormatINR()</text>
+  <text x="505" y="215" fill="#94a3b8" font-size="9">Target: getter / setter</text>
+  <text x="505" y="235" fill="#cbd5e1" font-size="9">Purpose: Currency formatting,</text>
+  <text x="505" y="250" fill="#cbd5e1" font-size="9">read-only protection,</text>
+  <text x="505" y="265" fill="#cbd5e1" font-size="9">caching calculations</text>
+
+  <path d="M 735 125 L 735 150" stroke="#60a5fa" stroke-width="2"/>
+  <rect x="650" y="150" width="170" height="145" rx="8" fill="#1e293b" stroke="#ec4899" stroke-width="1.5"/>
+  <text x="735" y="172" fill="#f472b6" font-size="11" font-weight="bold" text-anchor="middle">5. Param Decorator</text>
+  <text x="660" y="195" fill="#f8fafc" font-size="10">@LogParam(name)</text>
+  <text x="660" y="215" fill="#94a3b8" font-size="9">Target: index number</text>
+  <text x="660" y="235" fill="#cbd5e1" font-size="9">Purpose: Param tagging,</text>
+  <text x="660" y="250" fill="#cbd5e1" font-size="9">header injection,</text>
+  <text x="660" y="265" fill="#cbd5e1" font-size="9">audit verification</text>
+</svg>

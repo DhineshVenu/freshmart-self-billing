@@ -1,0 +1,75 @@
+services:
+  # ==============================================================================
+  # Database Service: MongoDB 7 Engine with Persistent Named Volume
+  # ==============================================================================
+  mongo-db:
+    image: mongo:7-jammy
+    container_name: supermarket-mongo
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - supermarket-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  # ==============================================================================
+  # Backend API Service: Node 20 Express 5 REST API
+  # ==============================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: supermarket-backend:latest
+    container_name: supermarket-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - MONGODB_URI=mongodb://mongo-db:27017/supermarket_billing
+      - CLIENT_URL=http://localhost
+      - JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET in the repository root .env file}
+    depends_on:
+      mongo-db:
+        condition: service_healthy
+    networks:
+      - supermarket-net
+
+  # ==============================================================================
+  # Frontend Web Service: React 19 SPA served via NGINX Alpine Reverse Proxy
+  # ==============================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: supermarket-frontend:latest
+    container_name: supermarket-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - supermarket-net
+
+# ==============================================================================
+# Persistent Storage Volumes (Unit 5 Module 3.4 Data Persistence)
+# ==============================================================================
+volumes:
+  mongo-data:
+    name: supermarket_mongo_data
+
+# ==============================================================================
+# User-Defined Bridge Network (Unit 5 Module 2.3 Network Drivers & Discovery)
+# ==============================================================================
+networks:
+  supermarket-net:
+    driver: bridge
+    name: supermarket_bridge_network

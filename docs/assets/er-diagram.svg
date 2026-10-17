@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 420" width="100%" height="420" style="background:#0f172a; border-radius:12px; font-family:system-ui, sans-serif;">
+  <text x="425" y="30" fill="#38bdf8" font-size="16" font-weight="bold" text-anchor="middle">ENTITY-RELATIONSHIP MODEL (MONGODB COLLECTIONS)</text>
+
+  <rect x="40" y="60" width="220" height="140" rx="8" fill="#1e293b" stroke="#3b82f6" stroke-width="1.5"/>
+  <rect x="40" y="60" width="220" height="26" rx="8" fill="#1d4ed8"/>
+  <text x="150" y="78" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">User Collection</text>
+  <text x="55" y="102" fill="#93c5fd" font-size="11">_id : ObjectId (PK)</text>
+  <text x="55" y="122" fill="#f8fafc" font-size="11">email : String (Unique)</text>
+  <text x="55" y="142" fill="#f8fafc" font-size="11">passwordHash : String</text>
+  <text x="55" y="162" fill="#f8fafc" font-size="11">role : customer | worker | admin</text>
+  <text x="55" y="182" fill="#f8fafc" font-size="11">status : active | disabled</text>
+
+  <rect x="590" y="60" width="220" height="140" rx="8" fill="#1e293b" stroke="#10b981" stroke-width="1.5"/>
+  <rect x="590" y="60" width="220" height="26" rx="8" fill="#047857"/>
+  <text x="700" y="78" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">Product Collection</text>
+  <text x="605" y="102" fill="#a7f3d0" font-size="11">_id : ObjectId (PK)</text>
+  <text x="605" y="122" fill="#f8fafc" font-size="11">barcode : String (Unique)</text>
+  <text x="605" y="142" fill="#f8fafc" font-size="11">name : String</text>
+  <text x="605" y="162" fill="#f8fafc" font-size="11">price : Number (INR ₹)</text>
+  <text x="605" y="182" fill="#f8fafc" font-size="11">stockQty : Number</text>
+
+  <rect x="315" y="60" width="220" height="140" rx="8" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5"/>
+  <rect x="315" y="60" width="220" height="26" rx="8" fill="#b45309"/>
+  <text x="425" y="78" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">ShoppingSession Collection</text>
+  <text x="330" y="102" fill="#fde68a" font-size="11">_id : ObjectId (PK)</text>
+  <text x="330" y="122" fill="#f8fafc" font-size="11">sessionCode : String (Unique)</text>
+  <text x="330" y="142" fill="#f8fafc" font-size="11">storeName : String</text>
+  <text x="330" y="162" fill="#f8fafc" font-size="11">joinedCustomerName : String</text>
+  <text x="330" y="182" fill="#f8fafc" font-size="11">status : ACTIVE | COMPLETED</text>
+
+  <rect x="40" y="240" width="220" height="140" rx="8" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+  <rect x="40" y="240" width="220" height="26" rx="8" fill="#7e22ce"/>
+  <text x="150" y="258" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">Cart Collection</text>
+  <text x="55" y="282" fill="#e9d5ff" font-size="11">_id : ObjectId (PK)</text>
+  <text x="55" y="302" fill="#f8fafc" font-size="11">sessionCode : String (FK)</text>
+  <text x="55" y="322" fill="#f8fafc" font-size="11">items : Array [CartItem]</text>
+  <text x="55" y="342" fill="#f8fafc" font-size="11">totalAmount : Number</text>
+
+  <rect x="315" y="240" width="220" height="140" rx="8" fill="#1e293b" stroke="#ec4899" stroke-width="1.5"/>
+  <rect x="315" y="240" width="220" height="26" rx="8" fill="#be185d"/>
+  <text x="425" y="258" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">Order Snapshot Collection</text>
+  <text x="330" y="282" fill="#fbcfe8" font-size="11">orderNo : String (Unique)</text>
+  <text x="330" y="302" fill="#f8fafc" font-size="11">sessionId : String (FK)</text>
+  <text x="330" y="322" fill="#f8fafc" font-size="11">items : Embedded Snapshots</text>
+  <text x="330" y="342" fill="#f8fafc" font-size="11">subtotal, taxAmount, total</text>
+  <text x="330" y="362" fill="#f8fafc" font-size="11">status : PENDING | PAID</text>
+
+  <rect x="590" y="240" width="220" height="140" rx="8" fill="#1e293b" stroke="#06b6d4" stroke-width="1.5"/>
+  <rect x="590" y="240" width="220" height="26" rx="8" fill="#0e7490"/>
+  <text x="700" y="258" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">Payment Collection</text>
+  <text x="605" y="282" fill="#cffafe" font-size="11">_id : ObjectId (PK)</text>
+  <text x="605" y="302" fill="#f8fafc" font-size="11">orderId : String (FK)</text>
+  <text x="605" y="322" fill="#f8fafc" font-size="11">amount : Number</text>
+  <text x="605" y="342" fill="#f8fafc" font-size="11">method : UPI | CASH | CARD</text>
+  <text x="605" y="362" fill="#f8fafc" font-size="11">idempotencyKey : String (UK)</text>
+</svg>

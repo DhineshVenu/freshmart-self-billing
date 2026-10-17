@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 440" width="100%" height="440" style="background:#0f172a; border-radius:12px; font-family:system-ui, sans-serif;">
+  <text x="425" y="30" fill="#38bdf8" font-size="16" font-weight="bold" text-anchor="middle">CHECKOUT &amp; PAYMENT CONFIRMATION LIFECYCLE</text>
+
+  <rect x="60" y="60" width="140" height="30" rx="6" fill="#1e293b" stroke="#3b82f6"/>
+  <text x="130" y="80" fill="#60a5fa" font-size="11" font-weight="bold" text-anchor="middle">Customer SPA</text>
+
+  <rect x="355" y="60" width="140" height="30" rx="6" fill="#1e293b" stroke="#10b981"/>
+  <text x="425" y="80" fill="#34d399" font-size="11" font-weight="bold" text-anchor="middle">Express API</text>
+
+  <rect x="650" y="60" width="140" height="30" rx="6" fill="#1e293b" stroke="#a855f7"/>
+  <text x="720" y="80" fill="#c084fc" font-size="11" font-weight="bold" text-anchor="middle">MongoDB Engine</text>
+
+  <line x1="130" y1="90" x2="130" y2="400" stroke="#334155" stroke-dasharray="4"/>
+  <line x1="425" y1="90" x2="425" y2="400" stroke="#334155" stroke-dasharray="4"/>
+  <line x1="720" y1="90" x2="720" y2="400" stroke="#334155" stroke-dasharray="4"/>
+
+  <path d="M 130 120 L 425 120" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="275" y="112" fill="#f8fafc" font-size="11" text-anchor="middle">1. POST /api/v1/checkout { sessionCode, method }</text>
+
+  <path d="M 425 150 L 720 150" stroke="#34d399" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="572" y="142" fill="#f8fafc" font-size="11" text-anchor="middle">2. Lock Session &amp; Create Order Snapshot</text>
+
+  <path d="M 720 180 L 425 180" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrow)"/>
+  <text x="572" y="172" fill="#94a3b8" font-size="11" text-anchor="middle">3. Order Created (status = PENDING)</text>
+
+  <path d="M 425 210 L 130 210" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrow)"/>
+  <text x="275" y="202" fill="#94a3b8" font-size="11" text-anchor="middle">4. 201 Created { Order, GST Invoice }</text>
+
+  <path d="M 130 270 L 425 270" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="275" y="262" fill="#f8fafc" font-size="11" text-anchor="middle">5. Worker POS: POST /api/v1/payments/confirm</text>
+
+  <path d="M 425 300 L 720 300" stroke="#34d399" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="572" y="292" fill="#f8fafc" font-size="11" text-anchor="middle">6. Decrement Stock &amp; Mark Order PAID</text>
+
+  <path d="M 720 330 L 425 330" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrow)"/>
+  <text x="572" y="322" fill="#94a3b8" font-size="11" text-anchor="middle">7. Session COMPLETED &amp; Audit Logged</text>
+
+  <path d="M 425 360 L 130 360" stroke="#34d399" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="275" y="352" fill="#34d399" font-size="11" text-anchor="middle">8. 200 OK { Order PAID, Verified Seal }</text>
+</svg>
