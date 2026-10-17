@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 270" width="100%" height="270" style="background:#0f172a; border-radius:12px; font-family:system-ui, -apple-system, sans-serif;">
+  <text x="440" y="32" fill="#38bdf8" font-size="16" font-weight="bold" text-anchor="middle" letter-spacing="1">BROWSER CACHING: WITHOUT VS. WITH SPLITCHUNKS OPTIMIZATION</text>
+
+  <!-- Left: Without SplitChunks -->
+  <rect x="30" y="55" width="395" height="195" rx="10" fill="#1e293b" stroke="#ef4444" stroke-width="2"/>
+  <text x="227" y="82" fill="#f87171" font-size="13" font-weight="bold" text-anchor="middle">Without SplitChunks (Monolithic)</text>
+  
+  <rect x="50" y="98" width="355" height="42" rx="6" fill="#0f172a" stroke="#334155"/>
+  <text x="65" y="116" fill="#f8fafc" font-size="11" font-weight="bold">Single Monolithic Bundle: bundle.js (769 KB)</text>
+  <text x="65" y="132" fill="#94a3b8" font-size="10">App Code (68 KB) + React/DOM/ZXing Vendor Code (701 KB)</text>
+
+  <rect x="50" y="148" width="355" height="85" rx="6" fill="#450a0a" stroke="#b91c1c"/>
+  <text x="65" y="168" fill="#fca5a5" font-size="11" font-weight="bold">&#9888; Problem on Code Update:</text>
+  <text x="65" y="186" fill="#f87171" font-size="10.5">Changing a single line of UI logic changes the bundle hash.</text>
+  <text x="65" y="202" fill="#fca5a5" font-size="10.5">Browser cache is completely invalidated.</text>
+  <text x="65" y="218" fill="#fca5a5" font-size="10.5">Every customer must re-download all 769 KB over the network.</text>
+
+  <!-- Right: With SplitChunks -->
+  <rect x="455" y="55" width="395" height="195" rx="10" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
+  <text x="652" y="82" fill="#34d399" font-size="13" font-weight="bold" text-anchor="middle">With SplitChunks (Optimized)</text>
+
+  <rect x="475" y="98" width="355" height="42" rx="6" fill="#0f172a" stroke="#10b981"/>
+  <text x="490" y="116" fill="#34d399" font-size="11" font-weight="bold">&#10004; Vendor Chunk: vendors.[hash].js (701 KB)</text>
+  <text x="490" y="132" fill="#94a3b8" font-size="10">React, React-DOM, ZXing, QR Code &amp; Icons (Changes rarely)</text>
+
+  <rect x="475" y="148" width="355" height="42" rx="6" fill="#0f172a" stroke="#38bdf8"/>
+  <text x="490" y="166" fill="#38bdf8" font-size="11" font-weight="bold">&#10004; App Chunk: main.[hash].js (68 KB)</text>
+  <text x="490" y="182" fill="#94a3b8" font-size="10">Fresh Mart store UI &amp; retail business logic (Updated often)</text>
+
+  <rect x="475" y="198" width="355" height="38" rx="6" fill="#064e3b" stroke="#059669"/>
+  <text x="490" y="216" fill="#a7f3d0" font-size="10.5" font-weight="bold">&#9733; Caching Benefit:</text>
+  <text x="490" y="230" fill="#6ee7b7" font-size="10">Updates only re-download 68 KB. 701 KB remains 100% cached!</text>
+</svg>

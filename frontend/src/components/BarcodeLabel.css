@@ -1,0 +1,153 @@
+.barcode-label-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 6px 10px 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.barcode-label-wrap svg {
+  display: block;
+  max-width: 100%;
+}
+
+.barcode-label-name {
+  margin: 2px 0 0;
+  font-size: 10px;
+  font-weight: 600;
+  color: #475569;
+  text-align: center;
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Printable barcode sheet styles */
+.barcode-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.barcode-sheet-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: min(900px, 96vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 28px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+}
+
+.barcode-sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.barcode-sheet-header h2 {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.barcode-sheet-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-print {
+  background: #047857;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-close-sheet {
+  background: #f1f5f9;
+  color: #475569;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.barcode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.barcode-grid-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+}
+
+.barcode-grid-card .product-full-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.barcode-grid-card .product-price-tag {
+  font-size: 13px;
+  font-weight: 800;
+  color: #047857;
+}
+
+.barcode-grid-card .product-category-tag {
+  font-size: 10px;
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-weight: 600;
+}
+
+@media print {
+  .barcode-sheet-overlay {
+    position: static;
+    background: none;
+  }
+  .barcode-sheet-modal {
+    box-shadow: none;
+    border-radius: 0;
+    width: 100%;
+    max-height: none;
+    padding: 0;
+  }
+  .barcode-sheet-actions {
+    display: none;
+  }
+  .barcode-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
