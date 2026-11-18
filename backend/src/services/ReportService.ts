@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { DailySalesSnapshot, IDailySalesSnapshot, ICategoryBreakdown } from "../models/DailySalesSnapshot.js";
 import { Order } from "../models/Order.js";
 import { LogExecution, Singleton } from "../utils/index.js";
+import PDFDocument from "pdfkit";
 
 export interface DailyReportDto {
   date: string;
@@ -226,15 +227,170 @@ export class ReportService {
   }
 
   /**
-   * PDF export — stub (not implemented, use CSV for now).
+   * PDF export — generates a formatted sales report PDF with daily revenue,
+   * category breakdown, and peak-hour summary.
    */
   @LogExecution
   async exportToPdf(
-    _storeId: string | undefined,
-    _startDate: Date,
-    _endDate: Date
+    storeId: string | undefined,
+    startDate: Date,
+    endDate: Date
   ): Promise<Buffer> {
-    throw new Error("PDF export is not available. Please use the CSV export option.");
+    // Gather report data
+    const dailyData = await this.getDailyReport(storeId, startDate, endDate);
+    const categoryData = await this.getCategoryReport(storeId, "month");
+    const peakData = await this.getPeakHourReport(storeId, "month");
+
+    // Filter to only days with orders for a cleaner report
+    const activeDays = dailyData.filter((d) => d.totalOrders > 0);
+
+    const doc = new PDFDocument({
+      margin: 50,
+      size: "A4",
+      info: { Title: "Fresh Mart Sales Report", Author: "Fresh Mart POS" },
+    });
+
+    const chunks: Buffer[] = [];
+    doc.on("data", (chunk: Buffer) => chunks.push(chunk));
+    const donePromise = new Promise<Buffer>((resolve) => {
+      doc.on("end", () => resolve(Buffer.concat(chunks)));
+    });
+
+    // ── Header ──────────────────────────────────────────────────
+    doc
+      .fontSize(20)
+      .fillColor("#047857")
+      .font("Helvetica-Bold")
+      .text("Fresh Mart — Sales Report", { align: "center" });
+
+    doc
+      .fontSize(11)
+      .fillColor("#64748b")
+      .font("Helvetica")
+      .text(
+        `Period: ${startDate.toISOString().split("T")[0]} to ${endDate.toISOString().split("T")[0]}`,
+        { align: "center" }
+      );
+
+    doc.moveDown(1.5);
+    doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#e2e8f0").lineWidth(1).stroke();
+    doc.moveDown(1);
+
+    // ── Summary KPIs ─────────────────────────────────────────────
+    const totalRev = activeDays.reduce((s, d) => s + d.totalRevenue, 0);
+    const totalOrd = activeDays.reduce((s, d) => s + d.totalOrders, 0);
+    const totalTax = activeDays.reduce((s, d) => s + d.totalTax, 0);
+
+    doc.fontSize(14).fillColor("#0f172a").font("Helvetica-Bold").text("Summary");
+    doc.moveDown(0.5);
+
+    const kpiLabel = (label: string) =>
+      doc.fontSize(11).fillColor("#64748b").font("Helvetica").text(label);
+    const kpiValue = (val: string) =>
+      doc.fontSize(12).fillColor("#0f172a").font("Helvetica-Bold").text(val);
+
+    doc.fontSize(11);
+    kpiLabel("Total Revenue:");
+    doc.moveUp();
+    doc.text(`\u20b9${totalRev.toFixed(2)}`, 200, doc.y, { align: "right" });
+    doc.moveDown(0.3);
+    kpiLabel("Total Orders:");
+    doc.moveUp();
+    kpiValue(`${totalOrd}`);
+    doc.text("", 200, doc.y, { align: "right" });
+    doc.moveDown(0.3);
+    kpiLabel("Total Tax Collected:");
+    doc.moveUp();
+    doc.text(`\u20b9${totalTax.toFixed(2)}`, 200, doc.y, { align: "right" });
+
+    doc.moveDown(1.5);
+
+    // ── Daily Revenue Table ─────────────────────────────────────
+    doc.fontSize(14).fillColor("#0f172a").font("Helvetica-Bold").text("Daily Revenue Breakdown");
+    doc.moveDown(0.5);
+
+    // Table header
+    const colX = { date: 60, orders: 220, revenue: 340, tax: 460 };
+    doc.fontSize(10).fillColor("#64748b").font("Helvetica-Bold");
+    doc.text("Date", colX.date, doc.y);
+    doc.text("Orders", colX.orders, doc.y);
+    doc.text("Revenue", colX.revenue, doc.y);
+    doc.text("Tax", colX.tax, doc.y);
+    doc.moveDown(0.3);
+
+    // Table rows
+    doc.font("Helvetica").fillColor("#334155");
+    activeDays.forEach((d) => {
+      doc.text(d.date, colX.date, doc.y);
+      doc.text(String(d.totalOrders), colX.orders, doc.y);
+      doc.text(`\u20b9${d.totalRevenue.toFixed(2)}`, colX.revenue, doc.y);
+      doc.text(`\u20b9${d.totalTax.toFixed(2)}`, colX.tax, doc.y);
+      doc.moveDown(0.2);
+    });
+
+    if (activeDays.length === 0) {
+      doc.fillColor("#94a3b8").text("No paid orders in this period.");
+    }
+
+    doc.moveDown(1.5);
+
+    // ── Category Breakdown ──────────────────────────────────────
+    if (categoryData.length > 0) {
+      doc.addPage();
+      doc.fontSize(14).fillColor("#0f172a").font("Helvetica-Bold").text("Category Breakdown");
+      doc.moveDown(0.5);
+
+      doc.fontSize(10).fillColor("#64748b").font("Helvetica-Bold");
+      doc.text("Category", colX.date, doc.y);
+      doc.text("Orders", colX.orders, doc.y);
+      doc.text("Revenue", colX.revenue, doc.y);
+      doc.moveDown(0.3);
+
+      doc.font("Helvetica").fillColor("#334155");
+      categoryData.forEach((c) => {
+        doc.text(c.category, colX.date, doc.y);
+        doc.text(String(c.orders), colX.orders, doc.y);
+        doc.text(`\u20b9${c.revenue.toFixed(2)}`, colX.revenue, doc.y);
+        doc.moveDown(0.2);
+      });
+    }
+
+    doc.moveDown(1.5);
+
+    // ── Peak Hour Summary ───────────────────────────────────────
+    const topHours = [...peakData]
+      .filter((h) => h.orderCount > 0)
+      .sort((a, b) => b.orderCount - a.orderCount)
+      .slice(0, 5);
+
+    if (topHours.length > 0) {
+      doc.fontSize(14).fillColor("#0f172a").font("Helvetica-Bold").text("Top 5 Peak Hours");
+      doc.moveDown(0.5);
+
+      doc.fontSize(10).fillColor("#64748b").font("Helvetica-Bold");
+      doc.text("Hour", colX.date, doc.y);
+      doc.text("Orders", colX.orders, doc.y);
+      doc.moveDown(0.3);
+
+      doc.font("Helvetica").fillColor("#334155");
+      topHours.forEach((h) => {
+        const hourLabel = `${h.hour}:00 - ${h.hour + 1}:00`;
+        doc.text(hourLabel, colX.date, doc.y);
+        doc.text(String(h.orderCount), colX.orders, doc.y);
+        doc.moveDown(0.2);
+      });
+    }
+
+    // ── Footer ──────────────────────────────────────────────────
+    doc.moveDown(2);
+    doc
+      .fontSize(9)
+      .fillColor("#94a3b8")
+      .font("Helvetica")
+      .text(`Generated on ${new Date().toLocaleString()}`, { align: "center" });
+
+    doc.end();
+    return donePromise;
   }
 }
 

@@ -8,7 +8,8 @@ import {
   FiUser,
   FiArrowRight,
 } from "react-icons/fi";
-import { getOrderBill, type OrderData } from "../services/checkoutApi";
+import { getOrderBill, getMyOrders, type OrderData } from "../services/checkoutApi";
+import { getStoredToken, getProfile, type CustomerProfile } from "../services/authApi";
 import { DigitalBillModal } from "../components/DigitalBillModal";
 import { Toast, type ToastType } from "../components/Toast";
 import "./CustomerHistoryPage.css";
@@ -23,14 +24,27 @@ function CustomerHistoryPage({ onBackToShopping }: CustomerHistoryPageProps) {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+  const [profile, setProfile] = useState<CustomerProfile | null>(null);
 
   const fetchOrders = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch("http://localhost:5000/api/v1/orders");
-      const body = await res.json();
-      if (body.success) {
-        setOrders(body.data.orders);
+      // If authenticated, fetch only the current customer's own orders.
+      // Otherwise fall back to the public endpoint (all orders).
+      const token = getStoredToken();
+      if (token) {
+        const [myOrders, prof] = await Promise.all([
+          getMyOrders(),
+          getProfile().catch(() => null),
+        ]);
+        setOrders(myOrders);
+        if (prof) setProfile(prof);
+      } else {
+        const res = await fetch("http://localhost:5000/api/v1/orders");
+        const body = await res.json();
+        if (body.success) {
+          setOrders(body.data.orders);
+        }
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to load purchase history";
@@ -95,6 +109,24 @@ function CustomerHistoryPage({ onBackToShopping }: CustomerHistoryPageProps) {
             </button>
           </div>
         </header>
+
+        {/* Bounty Wallet Card (authenticated customers only) */}
+        {profile && (
+          <div className="bounty-wallet-card">
+            <span className="bounty-icon">🏆</span>
+            <div className="bounty-stats">
+              <div className="bounty-stat">
+                <span className="bounty-stat-label">Fresh Points</span>
+                <span className="bounty-stat-val">{profile.bountyPoints}</span>
+              </div>
+              <div className="bounty-divider" />
+              <div className="bounty-stat">
+                <span className="bounty-stat-label">Wallet Balance</span>
+                <span className="bounty-stat-val">₹{profile.bountyWalletBalance.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Filter & Search Bar */}
         <div style={{ display: "flex", gap: "12px", marginBottom: "20px", flexWrap: "wrap", alignItems: "center" }}>
@@ -231,6 +263,8 @@ function CustomerHistoryPage({ onBackToShopping }: CustomerHistoryPageProps) {
         <DigitalBillModal
           order={selectedOrder}
           onClose={() => setSelectedOrder(null)}
+          pointsEarned={selectedOrder.status === "PAID" ? Math.floor(selectedOrder.totalAmount / 10) : undefined}
+          walletBalance={profile?.bountyWalletBalance}
         />
       )}
     </main>

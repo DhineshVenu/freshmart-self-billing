@@ -5,6 +5,7 @@ import {
   FiDownload,
   FiCalendar,
   FiTrendingUp,
+  FiFileText,
 } from "react-icons/fi";
 import {
   LineChart,
@@ -23,6 +24,7 @@ import {
   getCategoryReport,
   getPeakHourReport,
   exportCsv,
+  exportPdf,
   type DailySnapshotData,
   type CategoryReportItem,
   type PeakHourItem,
@@ -92,6 +94,24 @@ function ReportsPage() {
     }
   };
 
+  const handleExportPdf = async () => {
+    setIsExporting(true);
+    try {
+      const blob = await exportPdf(startDate, endDate);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `freshmart-report-${startDate}-${endDate}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("PDF exported successfully", "success");
+    } catch (err) {
+      showToast((err as Error).message || "PDF export failed", "error");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   // Summary stats
   const totalRevenue = daily.reduce((sum, d) => sum + d.totalRevenue, 0);
   const totalOrders = daily.reduce((sum, d) => sum + d.totalOrders, 0);
@@ -137,6 +157,9 @@ function ReportsPage() {
           </button>
           <button className="rpt-export-btn" onClick={handleExportCsv} disabled={isExporting}>
             <FiDownload size={14} /> {isExporting ? "Exporting…" : "Export CSV"}
+          </button>
+          <button className="rpt-export-btn" onClick={handleExportPdf} disabled={isExporting}>
+            <FiDownload size={14} /> {isExporting ? "Exporting…" : "Export PDF"}
           </button>
         </div>
       </div>
@@ -299,6 +322,52 @@ function ReportsPage() {
           )}
         </section>
       </div>
+
+      {/* Daily Performance Breakdown Table */}
+      {daily.length > 0 && (
+        <section className="rpt-chart-card" style={{ marginTop: "20px" }}>
+          <h2><FiFileText size={16} /> Daily Sales Snapshot Audit</h2>
+          <div className="table-wrapper" tabIndex={0} role="region" aria-label="Daily Sales Breakdown">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Audit Date</th>
+                  <th className="col-num">Total Paid Orders</th>
+                  <th className="col-price">Daily Revenue (₹)</th>
+                  <th className="col-price">GST Tax Collected (₹)</th>
+                  <th className="col-price">Avg Order Value (₹)</th>
+                  <th className="col-center">Activity Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {daily.map((d) => {
+                  const aov = d.totalOrders > 0 ? d.totalRevenue / d.totalOrders : 0;
+                  return (
+                    <tr key={d.date}>
+                      <td className="font-mono font-bold">{d.date}</td>
+                      <td className="col-num">{d.totalOrders}</td>
+                      <td className="col-price font-mono font-bold" style={{ color: "#34d399" }}>
+                        ₹{d.totalRevenue.toFixed(2)}
+                      </td>
+                      <td className="col-price font-mono text-muted">
+                        ₹{d.totalTax.toFixed(2)}
+                      </td>
+                      <td className="col-price font-mono">
+                        ₹{aov.toFixed(2)}
+                      </td>
+                      <td className="col-center">
+                        <span className={`status-pill ${d.totalOrders > 0 ? "active" : "disabled"}`}>
+                          {d.totalOrders > 0 ? "TRANSACTED" : "NO SALES"}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

@@ -3,11 +3,22 @@ import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, Alert, Platform,
 } from "react-native";
-import { CameraView, useCameraPermissions, BarcodeScanningResult } from "expo-camera";
 import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../types";
 import { useAuthStore } from "../store/authStore";
+
+// Lazy-load expo-camera so it doesn't crash in Expo Go before permissions
+let CameraView: any = null;
+let useCameraPermissions: () => [any, () => Promise<any>] = () => [null, async () => ({})];
+type BarcodeScanningResult = { data: string };
+try {
+  const cam = require("expo-camera");
+  CameraView = cam.CameraView;
+  useCameraPermissions = cam.useCameraPermissions;
+} catch {
+  // expo-camera unavailable — camera will be hidden, manual entry still works
+}
 
 type Nav = StackNavigationProp<RootStackParamList, "QRScan">;
 

@@ -201,3 +201,54 @@
   font-weight: 700;
   cursor: pointer;
 }
+
+/* ─── Bounty Wallet Card ───────────────────────────────────────── */
+.bounty-wallet-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(135deg, #064e3b, #065f46);
+  border: 1px solid #10b981;
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.18);
+}
+
+.bounty-icon {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.bounty-stats {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.bounty-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bounty-stat-label {
+  color: #6ee7b7;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.bounty-stat-val {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.bounty-divider {
+  width: 1px;
+  height: 28px;
+  background: #10b981;
+  opacity: 0.5;
+}

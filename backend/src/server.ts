@@ -46,14 +46,13 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-// Rate limiter — auth endpoints only (brute-force protection)
+// Rate limiter — brute-force protection for login endpoint only
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10,                   // max 10 attempts per IP per window
+  max: process.env.NODE_ENV === "production" ? 30 : 500,
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (request) =>
-    request.path === "/forgot-password" || request.path === "/reset-password",
+  skip: (request) => request.path !== "/login",
   message: { success: false, message: "Too many login attempts. Please try again in 15 minutes." },
 });
 

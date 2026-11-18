@@ -44,6 +44,23 @@ const UserSchema = new Schema<IUser>(
       ref: "Store",
       default: null,
     },
+    phone: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    dietaryPreferences: {
+      allergens: { type: [String], default: [] },
+      diet: { type: [String], default: [] },
+    },
+    bountyPoints: {
+      type: Number,
+      default: 0,
+    },
+    bountyWalletBalance: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );

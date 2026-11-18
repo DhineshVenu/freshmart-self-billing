@@ -75,3 +75,20 @@ export async function exportCsv(
   }
   return res.blob();
 }
+
+export async function exportPdf(
+  startDate: string,
+  endDate: string,
+  storeId?: string
+): Promise<Blob> {
+  const params = new URLSearchParams({ startDate, endDate });
+  if (storeId) params.set("storeId", storeId);
+  const res = await fetch(`${API_BASE}/reports/export/pdf?${params}`, {
+    credentials: "include",
+  });
+  if (!res.ok) {
+    const json = await res.json().catch(() => ({}));
+    throw new Error((json as { message?: string }).message || "PDF export failed");
+  }
+  return res.blob();
+}

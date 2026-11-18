@@ -107,21 +107,42 @@
 
 .dash-table {
   width: 100%;
-  border-collapse: collapse;
+  min-width: 720px;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 13px;
 }
 
 .dash-table th {
   text-align: left;
-  padding: 10px 12px;
-  background: #0f172a;
+  padding: 12px 14px;
+  background: #111a2e;
   color: #94a3b8;
-  border-bottom: 1px solid #334155;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-bottom: 2px solid #1e293b;
+  white-space: nowrap;
 }
 
 .dash-table td {
-  padding: 12px;
+  padding: 12px 14px;
   border-bottom: 1px solid #1e293b;
+  vertical-align: middle;
+}
+
+.dash-table th.col-price, .dash-table td.col-price,
+.dash-table th.col-qty, .dash-table td.col-qty,
+.dash-table th.col-num, .dash-table td.col-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-table th.col-center, .dash-table td.col-center,
+.dash-table th.col-status, .dash-table td.col-status,
+.dash-table th.col-action, .dash-table td.col-action {
+  text-align: center;
 }
 
 .customer-badge {
@@ -291,4 +312,25 @@
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
+}
+
+/* Cancel-session action button */
+.cancel-sess-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #7f1d1d;
+  background: #1e293b;
+  color: #fca5a5;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-left: 8px;
+  transition: background 0.15s ease;
+}
+.cancel-sess-btn:hover {
+  background: #7f1d1d;
+  color: #fff;
 }

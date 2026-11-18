@@ -1,11 +1,18 @@
 import api from "./api";
-import { Cart } from "../types";
+import { Cart, Product } from "../types";
 
 export async function getCart(sessionCode: string): Promise<Cart> {
   const res = await api.get<{ success: boolean; data: { cart: Cart } }>(
     `/carts/${sessionCode}`
   );
   return res.data.data.cart;
+}
+
+export async function getProductDetail(barcode: string): Promise<Product> {
+  const res = await api.get<{ success: boolean; data: { product: Product } }>(
+    `/products/barcode/${encodeURIComponent(barcode)}/detail`
+  );
+  return res.data.data.product;
 }
 
 export async function addToCart(

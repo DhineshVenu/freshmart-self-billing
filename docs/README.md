@@ -10,6 +10,8 @@ details.
 - [Full application report](./PROJECT_REPORT.md) — scope, architecture, clients,
   business workflows, data, integrations, security, deployment, testing, and
   current limitations.
+- [Task Implementation & Manual Testing Guide](./MANUAL_TESTING_AND_IMPLEMENTATION_GUIDE.md) — complete implementation deep-dive and step-by-step manual test procedures for Tasks 1–14.
+- [Newly Improvement Task Guide](./newly-improvement.md) — engineering task summary across Phases A–D.
 - [Deployment and operations](./07-deployment-and-operations-guide.md) — local
   development, Docker Compose, mobile configuration, and verification commands.
 

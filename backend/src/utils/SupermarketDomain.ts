@@ -75,6 +75,32 @@ export namespace SupermarketDomain {
       if (!barcode) return "";
       return barcode.trim();
     }
+
+    /**
+     * Returns the effective selling price for a product.
+     * Applies clearanceDiscountPercent only when expiryDate is within
+     * CLEARANCE_WINDOW_DAYS (7 days) from today. Otherwise returns the
+     * standard price unchanged.
+     */
+    export const CLEARANCE_WINDOW_DAYS = 7;
+
+    export function effectivePrice(product: {
+      price: number;
+      clearanceDiscountPercent?: number;
+      expiryDate?: Date | null;
+    }): number {
+      const discount = product.clearanceDiscountPercent ?? 0;
+      if (discount <= 0 || !product.expiryDate) {
+        return product.price;
+      }
+      const daysUntilExpiry =
+        (new Date(product.expiryDate).getTime() - Date.now()) /
+        (1000 * 60 * 60 * 24);
+      if (daysUntilExpiry > CLEARANCE_WINDOW_DAYS) {
+        return product.price;
+      }
+      return Number((product.price * (1 - discount / 100)).toFixed(2));
+    }
   }
 
   /**

@@ -50,14 +50,59 @@ describe("SupermarketDomain.BarcodeEngine", () => {
 });
 
 describe("SupermarketDomain.SessionEngine", () => {
-  it("should generate order numbers matching ORD-XXXXXX pattern", () => {
+  it("should generate order numbers matching ORD-NNNNNN pattern", () => {
     const orderNo = SupermarketDomain.SessionEngine.generateOrderNumber();
-    expect(orderNo).toMatch(/^ORD-[A-Z0-9]{6}$/);
+    expect(orderNo).toMatch(/^ORD-\d{6}$/);
   });
 
   it("should generate distinct order numbers on successive calls", () => {
     const o1 = SupermarketDomain.SessionEngine.generateOrderNumber();
     const o2 = SupermarketDomain.SessionEngine.generateOrderNumber();
     expect(o1).not.toBe(o2);
+  });
+});
+
+describe("SupermarketDomain.BarcodeEngine.effectivePrice", () => {
+  const makeProduct = (
+    price: number,
+    clearanceDiscountPercent?: number,
+    daysUntilExpiry?: number | null
+  ) => ({
+    price,
+    clearanceDiscountPercent,
+    expiryDate:
+      daysUntilExpiry == null
+        ? null
+        : new Date(Date.now() + daysUntilExpiry * 24 * 60 * 60 * 1000),
+  });
+
+  it("returns standard price when no discount is set", () => {
+    expect(SupermarketDomain.BarcodeEngine.effectivePrice(makeProduct(100))).toBe(100);
+  });
+
+  it("returns standard price when discount is 0", () => {
+    expect(
+      SupermarketDomain.BarcodeEngine.effectivePrice(makeProduct(100, 0, 3))
+    ).toBe(100);
+  });
+
+  it("applies 20% discount when expiryDate is 3 days away (within window)", () => {
+    const p = makeProduct(100, 20, 3);
+    expect(SupermarketDomain.BarcodeEngine.effectivePrice(p)).toBe(80);
+  });
+
+  it("does NOT apply discount when expiryDate is 10 days away (outside window)", () => {
+    const p = makeProduct(100, 20, 10);
+    expect(SupermarketDomain.BarcodeEngine.effectivePrice(p)).toBe(100);
+  });
+
+  it("does NOT apply discount when no expiryDate is set", () => {
+    const p = makeProduct(100, 20, null);
+    expect(SupermarketDomain.BarcodeEngine.effectivePrice(p)).toBe(100);
+  });
+
+  it("rounds discounted price to 2 decimal places", () => {
+    const p = makeProduct(99.99, 10, 2);
+    expect(SupermarketDomain.BarcodeEngine.effectivePrice(p)).toBe(89.99);
   });
 });

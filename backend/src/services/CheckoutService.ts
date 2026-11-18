@@ -5,8 +5,7 @@ import { Product } from "../models/Product.js";
 import { ShoppingSession } from "../models/ShoppingSession.js";
 import { User } from "../models/User.js";
 import { AuditLog } from "../models/AuditLog.js";
-import { SupermarketDomain } from "../utils/SupermarketDomain.js";
-import { LogExecution, ValidateInput, Singleton } from "../utils/index.js";
+import { SupermarketDomain } from "../utils/SupermarketDomain.js";import { LogExecution, ValidateInput, Singleton } from "../utils/index.js";
 import { mailService } from "./MailService.js";
 import { sessionSyncService } from "./SessionSyncService.js";
 import { inventoryService } from "./InventoryService.js";
@@ -51,7 +50,9 @@ export class CheckoutService {
         );
       }
 
-      const lineTotal = product.price * item.quantity;
+      const unitPrice = SupermarketDomain.BarcodeEngine.effectivePrice(product);
+      const lineTotal = unitPrice * item.quantity;
+      const clearanceApplied = unitPrice < product.price;
       subtotal += lineTotal;
 
       itemSnapshots.push({
@@ -59,10 +60,11 @@ export class CheckoutService {
         barcode: product.barcode,
         name: product.name,
         category: product.category || "General",
-        price: product.price,
+        price: unitPrice,
         unit: product.unit || "",
         quantity: item.quantity,
         lineTotal,
+        clearanceApplied,
       });
     }
 
@@ -233,6 +235,30 @@ export class CheckoutService {
       targetId: String(order._id),
       details: `Payment confirmed for ${order.orderNo}: ₹${order.totalAmount}`,
     });
+
+    // Award loyalty bounty points to the customer (1 point per ₹10 spent, ₹0.50 wallet credit per point)
+    if (order.customerId) {
+      try {
+        const earnedPoints = Math.floor(order.totalAmount / 10);
+        if (earnedPoints > 0) {
+          const walletCredit = Number((earnedPoints * 0.5).toFixed(2));
+          await User.findByIdAndUpdate(order.customerId, {
+            $inc: { bountyPoints: earnedPoints, bountyWalletBalance: walletCredit },
+          });
+
+          await AuditLog.create({
+            actorId: order.customerId,
+            actorRole: "customer",
+            action: "BOUNTY_EARNED",
+            targetType: "Order",
+            targetId: String(order._id),
+            details: `Earned ${earnedPoints} Fresh Points (₹${walletCredit} wallet) for order ${order.orderNo}`,
+          });
+        }
+      } catch (err) {
+        console.error("⚠️ Bounty award error:", err);
+      }
+    }
 
     sessionSyncService.broadcast(order.sessionId, "PAYMENT_CONFIRMED", { order, payment });
 

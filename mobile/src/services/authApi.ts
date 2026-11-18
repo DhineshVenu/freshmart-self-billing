@@ -1,5 +1,5 @@
 import api from "./api";
-import { AuthUser } from "../types";
+import { AuthUser, CustomerProfile, RedeemBountyResult } from "../types";
 
 export interface LoginPayload { email: string; password: string; }
 export interface RegisterPayload { name: string; email: string; password: string; }
@@ -23,6 +23,23 @@ export async function registerUser(payload: RegisterPayload): Promise<{ user: Au
 export async function getMe(): Promise<AuthUser> {
   const res = await api.get<{ success: boolean; data: { user: AuthUser } }>("/v1/auth/me");
   return res.data.data.user;
+}
+
+/** Full profile including loyalty bounty points and wallet balance. */
+export async function getProfile(): Promise<CustomerProfile> {
+  const res = await api.get<{ success: boolean; data: { profile: CustomerProfile } }>(
+    "/v1/auth/profile"
+  );
+  return res.data.data.profile;
+}
+
+/** Redeem Fresh Points for wallet credit (customer only). */
+export async function redeemBounty(pointsToRedeem: number): Promise<RedeemBountyResult> {
+  const res = await api.post<{ success: boolean; data: RedeemBountyResult }>(
+    "/v1/auth/redeem-bounty",
+    { pointsToRedeem }
+  );
+  return res.data.data;
 }
 
 export async function logoutUser(): Promise<void> {

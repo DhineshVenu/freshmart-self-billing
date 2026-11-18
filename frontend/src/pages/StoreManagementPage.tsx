@@ -8,21 +8,30 @@ import {
   FiToggleLeft,
   FiToggleRight,
   FiBarChart2,
+  FiUserCheck,
+  FiX,
 } from "react-icons/fi";
 import {
   getAllStores,
   createStore,
   toggleStoreActive,
   getStoreKPIs,
+  assignManager,
   type StoreData,
   type StoreKPIs,
   type CreateStorePayload,
 } from "../services/storeApi";
+import { fetchWorkers, type WorkerData } from "../services/adminApi";
+import { useAuth } from "../context/AuthContext";
 import { Toast, type ToastType } from "../components/Toast";
 import "./StoreManagementPage.css";
 
 function StoreManagementPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+
   const [stores, setStores] = useState<StoreData[]>([]);
+  const [workers, setWorkers] = useState<WorkerData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [expandedKPIs, setExpandedKPIs] = useState<Record<string, StoreKPIs | null>>({});
@@ -35,20 +44,29 @@ function StoreManagementPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
+  // Assign manager state
+  const [assigningStoreId, setAssigningStoreId] = useState<string | null>(null);
+  const [selectedManagerId, setSelectedManagerId] = useState<string>("");
+  const [isAssigning, setIsAssigning] = useState(false);
+
   const showToast = (message: string, type: ToastType) =>
     setToast({ message, type });
 
   const load = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await getAllStores();
+      const [data, workerList] = await Promise.all([
+        getAllStores(),
+        isAdmin ? fetchWorkers().catch(() => []) : Promise.resolve([]),
+      ]);
       setStores(data);
+      setWorkers(workerList);
     } catch (err) {
       showToast((err as Error).message || "Failed to load stores", "error");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => {
     load();
@@ -97,6 +115,31 @@ function StoreManagementPage() {
       setExpandedKPIs((prev) => ({ ...prev, [storeId]: kpis }));
     } catch {
       setExpandedKPIs((prev) => ({ ...prev, [storeId]: null }));
+    }
+  };
+
+  const openAssignManager = (store: StoreData) => {
+    setAssigningStoreId(store._id);
+    setSelectedManagerId(store.managerId || "");
+  };
+
+  const handleAssignManager = async () => {
+    if (!assigningStoreId || !selectedManagerId) {
+      showToast("Please select a worker to assign as manager", "error");
+      return;
+    }
+    setIsAssigning(true);
+    try {
+      const updated = await assignManager(assigningStoreId, selectedManagerId);
+      setStores((prev) => prev.map((s) => (s._id === assigningStoreId ? updated : s)));
+      const mgrName = workers.find((w) => w._id === selectedManagerId)?.name || "Manager";
+      showToast(`${mgrName} assigned as store manager`, "success");
+      setAssigningStoreId(null);
+      setSelectedManagerId("");
+    } catch (err) {
+      showToast((err as Error).message || "Failed to assign manager", "error");
+    } finally {
+      setIsAssigning(false);
     }
   };
 
@@ -223,6 +266,53 @@ function StoreManagementPage() {
                   <span className="store-meta-item"><FiUser size={12} /> {store.managerName}</span>
                 )}
               </div>
+
+              {/* Assign Manager (admin only) */}
+              {isAdmin && (
+                <div className="store-assign-section">
+                  {assigningStoreId === store._id ? (
+                    <div className="store-assign-dropdown">
+                      <select
+                        value={selectedManagerId}
+                        onChange={(e) => setSelectedManagerId(e.target.value)}
+                        className="store-manager-select"
+                      >
+                        <option value="">Select a worker…</option>
+                        {workers
+                          .filter((w) => w.status === "active")
+                          .map((w) => (
+                            <option key={w._id} value={w._id}>
+                              {w.name} ({w.email})
+                            </option>
+                          ))}
+                      </select>
+                      <div className="store-assign-actions">
+                        <button
+                          className="store-assign-confirm"
+                          onClick={handleAssignManager}
+                          disabled={isAssigning || !selectedManagerId}
+                        >
+                          {isAssigning ? "Assigning…" : "Confirm"}
+                        </button>
+                        <button
+                          className="store-assign-cancel"
+                          onClick={() => { setAssigningStoreId(null); setSelectedManagerId(""); }}
+                        >
+                          <FiX size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      className="store-assign-btn"
+                      onClick={() => openAssignManager(store)}
+                    >
+                      <FiUserCheck size={14} />
+                      {store.managerName ? "Change Manager" : "Assign Manager"}
+                    </button>
+                  )}
+                </div>
+              )}
 
               {kpis !== undefined && (
                 <div className="store-kpi-panel">

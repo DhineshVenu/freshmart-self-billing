@@ -7,9 +7,10 @@ import {
   FiUser,
   FiFileText,
   FiArrowRight,
+  FiX,
 } from "react-icons/fi";
 import { QRCodeSVG } from "qrcode.react";
-import { createShoppingSession } from "../services/sessionApi";
+import { createShoppingSession, cancelSession } from "../services/sessionApi";
 import { confirmPayment, getOrderBill, type OrderData } from "../services/checkoutApi";
 import type { ShoppingSessionData } from "../types/session";
 import { DigitalBillModal } from "../components/DigitalBillModal";
@@ -130,6 +131,24 @@ function WorkerDashboardPage({ onNavigateToJoin }: WorkerDashboardPageProps) {
 
   const pendingOrders = orders.filter((o) => o.status === "PENDING");
 
+  const handleCancelSession = async (sessionCode: string) => {
+    if (
+      !window.confirm(
+        "Cancel this active shopping session? Connected customers will be disconnected."
+      )
+    ) {
+      return;
+    }
+    try {
+      await cancelSession(sessionCode);
+      setSessions((prev) => prev.filter((s) => s.id !== sessionCode));
+      setToast({ message: "Session cancelled ✓", type: "info" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to cancel session";
+      setToast({ message: msg, type: "error" });
+    }
+  };
+
   return (
     <main className="worker-dash-page">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
@@ -190,52 +209,66 @@ function WorkerDashboardPage({ onNavigateToJoin }: WorkerDashboardPageProps) {
               <div className="sessions-tab">
                 <div className="table-card">
                   <h3>Walk-In Customer Sessions</h3>
-                  <table className="dash-table">
-                    <thead>
-                      <tr>
-                        <th>Session Code</th>
-                        <th>Outlet Name</th>
-                        <th>Customer</th>
-                        <th>Status</th>
-                        <th>Created Time</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sessions.map((s) => (
-                        <tr key={s.id}>
-                          <td><code>#{s.id.slice(0, 8)}</code></td>
-                          <td><strong>{s.storeName}</strong></td>
-                          <td>
-                            {s.joinedCustomerName ? (
-                              <span className="customer-badge">
-                                <FiUser /> {s.joinedCustomerName}
-                              </span>
-                            ) : (
-                              <span className="unclaimed-badge">Unclaimed</span>
-                            )}
-                          </td>
-                          <td>
-                            <span className={`status-pill ${s.status.toLowerCase()}`}>
-                              {s.status}
-                            </span>
-                          </td>
-                          <td>{new Date(s.createdAt).toLocaleTimeString()}</td>
-                          <td>
-                            {onNavigateToJoin && s.status === "ACTIVE" && (
-                              <button
-                                type="button"
-                                className="join-sim-btn"
-                                onClick={() => onNavigateToJoin(s.id)}
-                              >
-                                Join <FiArrowRight />
-                              </button>
-                            )}
-                          </td>
+                  <div className="table-wrapper" tabIndex={0} role="region" aria-label="Customer Sessions">
+                    <table className="dash-table">
+                      <thead>
+                        <tr>
+                          <th>Session Code</th>
+                          <th>Outlet Name</th>
+                          <th>Customer</th>
+                          <th className="col-center">Status</th>
+                          <th className="col-num">Created Time</th>
+                          <th className="col-action">Actions</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {sessions.map((s) => (
+                          <tr key={s.id}>
+                            <td><code>#{s.id.slice(0, 8)}</code></td>
+                            <td><strong>{s.storeName}</strong></td>
+                            <td>
+                              {s.joinedCustomerName ? (
+                                <span className="customer-badge">
+                                  <FiUser /> {s.joinedCustomerName}
+                                </span>
+                              ) : (
+                                <span className="unclaimed-badge">Unclaimed</span>
+                              )}
+                            </td>
+                            <td className="col-center">
+                              <span className={`status-pill ${s.status.toLowerCase()}`}>
+                                {s.status}
+                              </span>
+                            </td>
+                            <td className="col-num font-mono">{new Date(s.createdAt).toLocaleTimeString()}</td>
+                            <td className="col-action">
+                              <div className="row-action-group">
+                                {onNavigateToJoin && s.status === "ACTIVE" && (
+                                  <button
+                                    type="button"
+                                    className="join-sim-btn"
+                                    onClick={() => onNavigateToJoin(s.id)}
+                                  >
+                                    Join <FiArrowRight />
+                                  </button>
+                                )}
+                                {s.status === "ACTIVE" && (
+                                  <button
+                                    type="button"
+                                    className="cancel-sess-btn"
+                                    onClick={() => handleCancelSession(s.id)}
+                                    title="Cancel this session"
+                                  >
+                                    <FiX /> Cancel
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             )}
@@ -248,59 +281,61 @@ function WorkerDashboardPage({ onNavigateToJoin }: WorkerDashboardPageProps) {
                   {orders.length === 0 ? (
                     <div className="empty-box">No orders registered yet</div>
                   ) : (
-                    <table className="dash-table">
-                      <thead>
-                        <tr>
-                          <th>Order #</th>
-                          <th>Customer</th>
-                          <th>Outlet</th>
-                          <th>Items</th>
-                          <th>Grand Total</th>
-                          <th>Status</th>
-                          <th>Counter Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {orders.map((o) => (
-                          <tr key={o._id}>
-                            <td><strong>{o.orderNo}</strong></td>
-                            <td>{o.customerName}</td>
-                            <td>{o.storeName}</td>
-                            <td>{o.items.length} items</td>
-                            <td><strong className="amount font-mono">₹{o.totalAmount.toFixed(2)}</strong></td>
-                            <td>
-                              <span className={`status-pill ${o.status.toLowerCase()}`}>
-                                {o.status}
-                              </span>
-                            </td>
-                            <td>
-                              <div className="action-buttons-cell">
-                                <button
-                                  type="button"
-                                  className="view-bill-action-btn"
-                                  onClick={async () => {
-                                    const bill = await getOrderBill(o._id);
-                                    setSelectedOrder(bill);
-                                  }}
-                                >
-                                  <FiFileText /> View Invoice
-                                </button>
-                                {o.status === "PENDING" && (
+                    <div className="table-wrapper" tabIndex={0} role="region" aria-label="Exit Counter Payments">
+                      <table className="dash-table">
+                        <thead>
+                          <tr>
+                            <th>Order #</th>
+                            <th>Customer</th>
+                            <th>Outlet</th>
+                            <th className="col-num">Items</th>
+                            <th className="col-price">Grand Total</th>
+                            <th className="col-center">Status</th>
+                            <th className="col-action">Counter Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {orders.map((o) => (
+                            <tr key={o._id}>
+                              <td><strong>{o.orderNo}</strong></td>
+                              <td>{o.customerName}</td>
+                              <td>{o.storeName}</td>
+                              <td className="col-num">{o.items.length} items</td>
+                              <td className="col-price"><strong className="amount font-mono">₹{o.totalAmount.toFixed(2)}</strong></td>
+                              <td className="col-center">
+                                <span className={`status-pill ${o.status.toLowerCase()}`}>
+                                  {o.status}
+                                </span>
+                              </td>
+                              <td className="col-action">
+                                <div className="row-action-group">
                                   <button
                                     type="button"
-                                    className="confirm-pay-btn"
-                                    onClick={() => handleConfirmPayment(o._id)}
-                                    disabled={isConfirming}
+                                    className="view-bill-action-btn"
+                                    onClick={async () => {
+                                      const bill = await getOrderBill(o._id);
+                                      setSelectedOrder(bill);
+                                    }}
                                   >
-                                    <FiCheckCircle /> Confirm ₹
+                                    <FiFileText /> View Invoice
                                   </button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                                  {o.status === "PENDING" && (
+                                    <button
+                                      type="button"
+                                      className="confirm-pay-btn"
+                                      onClick={() => handleConfirmPayment(o._id)}
+                                      disabled={isConfirming}
+                                    >
+                                      <FiCheckCircle /> Confirm ₹
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   )}
                 </div>
               </div>

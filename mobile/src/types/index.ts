@@ -9,6 +9,24 @@ export interface AuthUser {
   role: UserRole;
 }
 
+/** Full customer profile including loyalty bounty points and wallet balance. */
+export interface CustomerProfile {
+  name: string;
+  email: string;
+  role: string;
+  phone: string;
+  dietaryPreferences: { allergens: string[]; diet: string[] };
+  bountyPoints: number;
+  bountyWalletBalance: number;
+}
+
+export interface RedeemBountyResult {
+  bountyPoints: number;
+  bountyWalletBalance: number;
+  redeemed: number;
+  walletDebit: number;
+}
+
 // ─── Session ──────────────────────────────────────────────────────────────────
 
 export type SessionStatus = "ACTIVE" | "CHECKOUT_PENDING" | "COMPLETED" | "CANCELLED";
@@ -44,6 +62,7 @@ export interface Cart {
   subtotal: number;
   taxAmount: number;
   totalAmount: number;
+  itemCount: number;
 }
 
 // ─── Product ──────────────────────────────────────────────────────────────────
@@ -58,6 +77,17 @@ export interface Product {
   stockQty: number;
   active: boolean;
   imageUrl?: string;
+  // Extended fields (nutrition, wayfinding, clearance)
+  aisle?: string;
+  shelf?: string;
+  bay?: number;
+  mapCoordinates?: { x: number; y: number };
+  nutriScore?: "A" | "B" | "C" | "D" | "E";
+  allergens?: string[];
+  dietaryFlags?: string[];
+  calories?: number;
+  expiryDate?: string | null;
+  clearanceDiscountPercent?: number;
 }
 
 // ─── Order ────────────────────────────────────────────────────────────────────
@@ -122,6 +152,7 @@ export type RootStackParamList = {
   PaymentPending: { orderId: string; sessionCode: string };
   Receipt: { orderId: string };
   History: undefined;
+  Profile: undefined;
 };
 
 export type MainTabParamList = {

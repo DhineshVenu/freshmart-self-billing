@@ -105,6 +105,28 @@ export class SessionController extends BaseController {
   };
 
   /**
+   * DELETE /api/sessions/:code
+   * Cancels a shopping session (worker/admin only).
+   */
+  public cancel = async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const code = Array.isArray(req.params.code)
+        ? req.params.code[0]
+        : req.params.code;
+      const cancelledBy = req.user?.userId || "Worker POS";
+      const actorRole = req.user?.role || "worker";
+      const session = await this.sessionService.cancelSession(code, cancelledBy, actorRole);
+      this.sendSuccess(res, { session }, 200, "Session cancelled successfully");
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
    * GET /api/sessions/:code/stream
    * Real-time Server-Sent Events (SSE) stream for shopping session updates.
    */

@@ -3,6 +3,7 @@ import type {
   GetSessionApiResponse,
   JoinSessionApiResponse,
 } from "../types/session";
+import { getAuthHeaders } from "./authApi";
 
 const API_URL = "http://localhost:5000/api";
 
@@ -77,3 +78,24 @@ export const joinShoppingSession = async (
 
   return result;
 };
+
+/**
+ * DELETE /api/sessions/:code — cancel an active shopping session.
+ * Requires an authenticated worker/admin/customer token (sent via Authorization header).
+ * Throws on failure; callers should handle 401/403 gracefully for best-effort use.
+ */
+export async function cancelSession(code: string): Promise<{ success: boolean }> {
+  const response = await fetch(`${API_URL}/sessions/${code}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+    credentials: "include",
+  });
+
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(
+      (result as { message?: string }).message || "Failed to cancel the shopping session"
+    );
+  }
+  return { success: true };
+}

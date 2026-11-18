@@ -43,6 +43,17 @@ export interface ResetDemoDataResult {
   };
 }
 
+export interface CustomerData {
+  _id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  bountyPoints?: number;
+  bountyWalletBalance?: number;
+  status: "active" | "disabled";
+  createdAt: string;
+}
+
 export async function fetchAdminDashboard(): Promise<{
   summary: DashboardSummary;
   recentAuditLogs: AuditLogData[];
@@ -157,4 +168,35 @@ export async function resetDemoData(): Promise<ResetDemoDataResult> {
     throw new Error(body.error?.message || body.message || "Failed to reset demo data");
   }
   return body.data;
+}
+
+export async function fetchCustomers(): Promise<CustomerData[]> {
+  const response = await fetch(`${API_BASE_URL}/admin/customers`, {
+    headers: getAuthHeaders(),
+    credentials: "include",
+  });
+  const body = await response.json();
+  if (!response.ok || !body.success) {
+    throw new Error(body.error?.message || body.message || "Failed to load customers");
+  }
+  return body.data.customers;
+}
+
+export async function updateCustomerPointsAdmin(
+  customerId: string,
+  bountyPoints: number,
+  bountyWalletBalance?: number,
+  reason?: string
+): Promise<CustomerData> {
+  const response = await fetch(`${API_BASE_URL}/admin/customers/${customerId}/points`, {
+    method: "PATCH",
+    headers: getAuthHeaders(),
+    credentials: "include",
+    body: JSON.stringify({ bountyPoints, bountyWalletBalance, reason }),
+  });
+  const body = await response.json();
+  if (!response.ok || !body.success) {
+    throw new Error(body.error?.message || body.message || "Failed to update customer points");
+  }
+  return body.data.customer;
 }

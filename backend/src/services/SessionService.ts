@@ -3,12 +3,14 @@ import ShoppingSession, {
   IShoppingSession,
 } from "../models/ShoppingSession.js";
 import { User } from "../models/User.js";
+import { AuditLog } from "../models/AuditLog.js";
 import {
   CreateSessionDTO,
   JoinSessionDTO,
   SessionResponseData,
 } from "../dtos/session.dto.js";
 import { LogExecution, ValidateInput, Singleton } from "../utils/index.js";
+import { sessionSyncService } from "./SessionSyncService.js";
 
 /**
  * Service class encapsulating all business logic and database access for Shopping Sessions.
@@ -141,5 +143,53 @@ export class SessionService {
   public async getAllSessions(): Promise<SessionResponseData[]> {
     const sessions = await ShoppingSession.find().sort({ createdAt: -1 }).limit(50);
     return sessions.map((s) => this.formatSessionResponse(s));
+  }
+
+  /**
+   * Cancel a shopping session. Only ACTIVE or CHECKOUT_PENDING sessions can be cancelled.
+   * Broadcasts SESSION_CANCELLED via SSE and writes an audit log entry.
+   */
+  @LogExecution
+  @ValidateInput
+  public async cancelSession(
+    code: string,
+    cancelledBy: string = "Worker POS",
+    actorRole: string = "worker"
+  ): Promise<SessionResponseData> {
+    const session = await ShoppingSession.findOne({ sessionCode: code });
+    if (!session) {
+      throw new Error("Shopping session not found");
+    }
+
+    if (session.status === "COMPLETED") {
+      throw new Error("Cannot cancel a completed shopping session");
+    }
+
+    if (session.status === "CANCELLED") {
+      throw new Error("Shopping session is already cancelled");
+    }
+
+    session.status = "CANCELLED";
+    await session.save();
+
+    // Broadcast cancellation to all connected SSE clients
+    sessionSyncService.broadcast(code, "SESSION_CANCELLED", {
+      sessionCode: code,
+      status: "CANCELLED",
+      cancelledBy,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Write audit log
+    await AuditLog.create({
+      actorId: cancelledBy,
+      actorRole,
+      action: "CANCEL_SESSION",
+      targetType: "ShoppingSession",
+      targetId: code,
+      details: `Shopping session ${code} cancelled`,
+    });
+
+    return this.formatSessionResponse(session);
   }
 }

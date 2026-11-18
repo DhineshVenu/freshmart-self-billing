@@ -26,7 +26,7 @@ export class WorkerService {
 
   @LogExecution
   async getAllWorkers(): Promise<IUser[]> {
-    return User.find({ role: "worker" }).select("-passwordHash").sort({ createdAt: -1 });
+    return User.find({ role: { $in: ["worker", "store_manager"] } }).select("-passwordHash").sort({ createdAt: -1 });
   }
 
   @LogExecution

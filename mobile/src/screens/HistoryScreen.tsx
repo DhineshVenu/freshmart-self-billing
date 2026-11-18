@@ -12,50 +12,9 @@ import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
 import { getMyOrders } from "../services/checkoutApi";
 import { Order, RootStackParamList } from "../types";
+import { OrderCard } from "../components/OrderCard";
 
 type Nav = StackNavigationProp<RootStackParamList, "History">;
-
-const STATUS_COLORS: Record<string, string> = {
-  PAID: "#10b981",
-  PENDING: "#f59e0b",
-  CANCELLED: "#ef4444",
-};
-
-function OrderCard({ order, onPress }: { order: Order; onPress: () => void }) {
-  const date = new Date(order.createdAt).toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-  const time = new Date(order.createdAt).toLocaleTimeString("en-IN", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  const statusColor = STATUS_COLORS[order.status] ?? "#94a3b8";
-
-  return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.75}>
-      <View style={styles.cardTop}>
-        <View>
-          <Text style={styles.orderNo}>{order.orderNo}</Text>
-          <Text style={styles.orderStore}>{order.storeName}</Text>
-        </View>
-        <View>
-          <Text style={[styles.statusBadge, { color: statusColor }]}>{order.status}</Text>
-          <Text style={styles.orderTotal}>₹{order.totalAmount.toFixed(2)}</Text>
-        </View>
-      </View>
-
-      <View style={styles.cardBottom}>
-        <Text style={styles.orderMeta}>
-          {order.items.length} item{order.items.length !== 1 ? "s" : ""} ·{" "}
-          {order.paymentMethod ?? "UPI"}
-        </Text>
-        <Text style={styles.orderDate}>{date} {time}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-}
 
 export default function HistoryScreen() {
   const navigation = useNavigation<Nav>();
@@ -63,6 +22,21 @@ export default function HistoryScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Profile access from the header
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Profile")}
+          style={{ paddingHorizontal: 14, paddingVertical: 6 }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Text style={{ fontSize: 18 }}>👤</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
 
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);

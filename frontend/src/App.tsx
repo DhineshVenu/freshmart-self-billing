@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   BrowserRouter,
   Routes,
@@ -5,18 +6,8 @@ import {
   Navigate,
   useNavigate,
   useParams,
-  useLocation,
 } from "react-router-dom";
-import {
-  FiShield,
-  FiUserCheck,
-  FiShoppingCart,
-  FiSliders,
-  FiFileText,
-  FiPackage,
-  FiBarChart2,
-  FiGrid,
-} from "react-icons/fi";
+import { FiMenu, FiShoppingCart } from "react-icons/fi";
 import JoinSessionPage from "./pages/JoinSessionPage";
 import ShoppingPage from "./pages/ShoppingPage";
 import WorkerDashboardPage from "./pages/WorkerDashboardPage";
@@ -25,6 +16,11 @@ import AdminDashboardPage from "./pages/AdminDashboardPage";
 import InventoryPage from "./pages/InventoryPage";
 import StoreManagementPage from "./pages/StoreManagementPage";
 import ReportsPage from "./pages/ReportsPage";
+import LoginPage from "./pages/LoginPage";
+import Sidebar from "./components/Sidebar";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { cancelSession } from "./services/sessionApi";
 import type { ShoppingSessionData } from "./types/session";
 
 // ─── Shared session helpers (sessionStorage) ────────────────────────────────
@@ -48,92 +44,28 @@ const clearSession = () => {
   sessionStorage.removeItem("app_session_code");
 };
 
-// ─── Navigation Bar ──────────────────────────────────────────────────────────
+// ─── Role-Based Smart Root Redirect ──────────────────────────────────────────
 
-function NavBar() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const sessionCode = sessionStorage.getItem("app_session_code") || "";
+function RootRedirect() {
+  const { user, isAuthenticated } = useAuth();
+  const sessionCode = sessionStorage.getItem("app_session_code");
 
-  const isActive = (path: string) => location.pathname.startsWith(path);
+  if (!isAuthenticated || !user) {
+    return <Navigate to={sessionCode ? "/shop" : "/join"} replace />;
+  }
 
-  const navBtn = (
-    path: string,
-    label: string,
-    Icon: React.ElementType,
-    color: string
-  ) => (
-    <button
-      type="button"
-      onClick={() => navigate(path)}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "6px",
-        padding: "8px 14px",
-        borderRadius: "8px",
-        border: isActive(path) ? `1px solid ${color}` : "1px solid #334155",
-        background: isActive(path) ? color : "#1e293b",
-        color: "#ffffff",
-        fontSize: "12px",
-        fontWeight: 700,
-        cursor: "pointer",
-      }}
-    >
-      <Icon /> <span>{label}</span>
-    </button>
-  );
+  if (user.role === "admin") {
+    return <Navigate to="/reports" replace />;
+  }
+  if (user.role === "store_manager") {
+    return <Navigate to="/stores" replace />;
+  }
+  if (user.role === "worker") {
+    return <Navigate to="/worker" replace />;
+  }
 
-  return (
-    <nav
-      style={{
-        background: "#0f172a",
-        borderBottom: "1px solid #1e293b",
-        padding: "12px 24px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        color: "#ffffff",
-        fontFamily:
-          'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        flexWrap: "wrap",
-        gap: "8px",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <div
-          style={{
-            width: "32px",
-            height: "32px",
-            background: "#047857",
-            borderRadius: "8px",
-            display: "grid",
-            placeItems: "center",
-            fontSize: "16px",
-          }}
-        >
-          <FiShoppingCart />
-        </div>
-        <div
-          style={{ fontWeight: 800, fontSize: "14px", letterSpacing: "0.04em" }}
-        >
-          FRESH MART SELF-BILLING
-        </div>
-      </div>
-
-      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-        {navBtn("/worker", "Worker Terminal", FiShield, "#047857")}
-        {navBtn("/join", "Customer Check-In", FiUserCheck, "#0284c7")}
-        {sessionCode &&
-          navBtn("/shop", "Active Cart & Scanner", FiShoppingCart, "#10b981")}
-        {navBtn("/history", "My Bills & Receipts", FiFileText, "#06b6d4")}
-        {navBtn("/admin", "Admin Console", FiSliders, "#8b5cf6")}
-        {navBtn("/inventory", "Inventory", FiPackage, "#f59e0b")}
-        {navBtn("/stores", "Stores", FiGrid, "#ec4899")}
-        {navBtn("/reports", "Reports", FiBarChart2, "#14b8a6")}
-      </div>
-    </nav>
-  );
+  // Regular customer shopper
+  return <Navigate to={sessionCode ? "/shop" : "/join"} replace />;
 }
 
 // ─── Route wrapper components ─────────────────────────────────────────────────
@@ -180,9 +112,14 @@ function ShopRoute() {
       sessionCode={session.id}
       customerName={session.joinedCustomerName || "Customer"}
       storeName={session.storeName || "Fresh Mart"}
-      onLeaveSession={() => {
+      onLeaveSession={async () => {
+        try {
+          await cancelSession(session.id);
+        } catch {
+          // ignore — not authenticated or already cancelled
+        }
         clearSession();
-        navigate("/worker");
+        navigate("/join");
       }}
       onSessionComplete={() => {
         clearSession();
@@ -200,7 +137,7 @@ function HistoryRoute() {
   return (
     <CustomerHistoryPage
       onBackToShopping={() => {
-        navigate(sessionCode ? "/shop" : "/worker");
+        navigate(sessionCode ? "/shop" : "/join");
       }}
     />
   );
@@ -213,7 +150,7 @@ function AdminRoute() {
     <AdminDashboardPage
       onDemoDataReset={() => {
         clearSession();
-        navigate("/worker");
+        navigate("/reports");
       }}
     />
   );
@@ -234,27 +171,118 @@ function ReportsRoute() {
   return <ReportsPage />;
 }
 
-// ─── App root ─────────────────────────────────────────────────────────────────
+// ─── Main App Layout with Collateral Sidebar ──────────────────────────────────
+
+function AppLayout() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const { user, isAuthenticated } = useAuth();
+
+  return (
+    <div className="app-shell">
+      {/* Sleek Collateral Sidebar */}
+      <Sidebar
+        mobileOpen={mobileOpen}
+        onCloseMobile={() => setMobileOpen(false)}
+      />
+
+      {/* Main Page Area */}
+      <main className="app-main-content">
+        {/* Mobile Header Bar with Hamburger */}
+        <header className="app-mobile-topbar">
+          <button
+            type="button"
+            className="mobile-menu-trigger"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open Navigation Menu"
+          >
+            <FiMenu />
+          </button>
+
+          <div className="mobile-brand-pill">
+            <div className="brand-icon">
+              <FiShoppingCart />
+            </div>
+            <span className="brand-text">FRESH MART</span>
+          </div>
+
+          <span className="mobile-role-badge">
+            {isAuthenticated && user ? user.role.toUpperCase() : "GUEST"}
+          </span>
+        </header>
+
+        {/* Dynamic Route Container */}
+        <div className="app-page-container">
+          <Routes>
+            {/* Smart role-based home redirect */}
+            <Route path="/" element={<RootRedirect />} />
+
+            {/* Public authentication page */}
+            <Route path="/login" element={<LoginPage />} />
+
+            {/* Customer shopper experience */}
+            <Route path="/join" element={<JoinRoute />} />
+            <Route path="/join/:code" element={<JoinRoute />} />
+            <Route path="/shop" element={<ShopRoute />} />
+            <Route path="/history" element={<HistoryRoute />} />
+
+            {/* Protected management routes */}
+            <Route
+              path="/worker"
+              element={
+                <ProtectedRoute roles={["worker", "admin", "store_manager"]}>
+                  <WorkerRoute />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute roles={["admin"]}>
+                  <AdminRoute />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/inventory"
+              element={
+                <ProtectedRoute roles={["admin", "store_manager", "worker"]}>
+                  <InventoryRoute />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/stores"
+              element={
+                <ProtectedRoute roles={["admin", "store_manager"]}>
+                  <StoresRoute />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/reports"
+              element={
+                <ProtectedRoute roles={["admin", "store_manager"]}>
+                  <ReportsRoute />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Catch-all fallback */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+      </main>
+    </div>
+  );
+}
 
 function App() {
   return (
-    <BrowserRouter>
-      <NavBar />
-      <Routes>
-        <Route path="/" element={<Navigate to="/worker" replace />} />
-        <Route path="/worker" element={<WorkerRoute />} />
-        <Route path="/join" element={<JoinRoute />} />
-        <Route path="/join/:code" element={<JoinRoute />} />
-        <Route path="/shop" element={<ShopRoute />} />
-        <Route path="/history" element={<HistoryRoute />} />
-        <Route path="/admin" element={<AdminRoute />} />
-        <Route path="/inventory" element={<InventoryRoute />} />
-        <Route path="/stores" element={<StoresRoute />} />
-        <Route path="/reports" element={<ReportsRoute />} />
-        {/* Catch-all */}
-        <Route path="*" element={<Navigate to="/worker" replace />} />
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <AppLayout />
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

@@ -15,9 +15,15 @@ import {
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
 import type { RouteProp } from "@react-navigation/native";
-import { addToCart, getCart, updateCartItemQty, removeCartItem } from "../services/cartApi";
+import { addToCart, getCart, updateCartItemQty, removeCartItem, getProductDetail } from "../services/cartApi";
 import { useCartStore } from "../store/cartStore";
-import { CartItem, RootStackParamList } from "../types";
+import { useSessionStore } from "../store/sessionStore";
+import { CartItem, Product, RootStackParamList } from "../types";
+import { ProductDetailSheet } from "../components/ProductDetailSheet";
+import { CartItemRow } from "../components/CartItemRow";
+import { cancelSession } from "../services/sessionApi";
+import { API_BASE_URL } from "../services/api";
+import * as SecureStore from "expo-secure-store";
 
 // Try to import camera — falls back gracefully if unavailable
 let CameraView: any = null;
@@ -52,7 +58,8 @@ export default function ShoppingScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const { sessionCode, customerName, storeName } = route.params;
-  const { cart, setCart } = useCartStore();
+  const { cart, setCart, clearCart } = useCartStore();
+  const { clearSession } = useSessionStore();
 
   const [permission, requestPermission] = useCameraPermissions
     ? useCameraPermissions()
@@ -63,6 +70,7 @@ export default function ShoppingScreen() {
   const [showCamera, setShowCamera] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [lastAdded, setLastAdded] = useState<string | null>(null);
+  const [detailProduct, setDetailProduct] = useState<Product | null>(null);
   const scanCooldown = useRef(false);
   const lastScannedRef = useRef<string>("");
 
@@ -71,6 +79,97 @@ export default function ShoppingScreen() {
       .then(setCart)
       .catch(() => {});
   }, [sessionCode, setCart]);
+
+  // Listen for worker-initiated SESSION_CANCELLED so the customer is navigated
+  // back to the QR scanner (mirrors the PaymentPendingScreen long-poll SSE pattern).
+  useEffect(() => {
+    let isMounted = true;
+    let cancelled = false;
+
+    const listen = async () => {
+      let token: string | null = null;
+      try {
+        token = await SecureStore.getItemAsync("auth_token");
+      } catch {
+        // ignore — stream endpoint is public
+      }
+      const url = `${API_BASE_URL}/sessions/${sessionCode}/stream${token ? `?token=${token}` : ""}`;
+
+      while (isMounted && !cancelled) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 30000);
+          const response = await fetch(url, {
+            headers: {
+              Accept: "text/event-stream",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            signal: controller.signal,
+          });
+          clearTimeout(timeoutId);
+          if (!response.body) break;
+
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          while (isMounted) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            const text = decoder.decode(value, { stream: true });
+            const lines = text.split("\n");
+            for (const line of lines) {
+              if (line.startsWith("event:")) {
+                const eventType = line.replace("event:", "").trim();
+                if (eventType === "SESSION_CANCELLED" && isMounted) {
+                  cancelled = true;
+                  Alert.alert(
+                    "Session Cancelled",
+                    "This shopping session was cancelled by the store.",
+                    [{ text: "OK" }]
+                  );
+                  clearCart();
+                  clearSession();
+                  navigation.reset({ index: 0, routes: [{ name: "QRScan" }] });
+                  return;
+                }
+              }
+            }
+          }
+        } catch {
+          if (!isMounted) return;
+          await new Promise((r) => setTimeout(r, 3000));
+        }
+      }
+    };
+
+    listen();
+    return () => {
+      isMounted = false;
+    };
+  }, [sessionCode, navigation, clearCart, clearSession]);
+
+  const handleLeaveAndCancel = () => {
+    Alert.alert(
+      "Leave & Cancel Session",
+      "This will cancel the shopping session and return you to the QR scanner.",
+      [
+        { text: "Stay", style: "cancel" },
+        {
+          text: "Leave & Cancel",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await cancelSession(sessionCode);
+            } catch {
+              // Best-effort — clear local state regardless
+            }
+            clearCart();
+            clearSession();
+            navigation.reset({ index: 0, routes: [{ name: "QRScan" }] });
+          },
+        },
+      ]
+    );
+  };
 
   const addItem = useCallback(
     async (barcode: string, label?: string) => {
@@ -87,6 +186,13 @@ export default function ShoppingScreen() {
           setScanStatus("idle");
           setLastAdded(null);
         }, 1800);
+
+        // Fetch extended product detail for the bottom sheet (best-effort)
+        getProductDetail(barcode.trim())
+          .then((p) => setDetailProduct(p))
+          .catch(() => {
+            /* detail fetch is best-effort; ignore failures */
+          });
       } catch (err) {
         setScanStatus("error");
         Alert.alert(
@@ -158,34 +264,7 @@ export default function ShoppingScreen() {
       : "Ready · Scan or type barcode";
 
   const renderCartItem = ({ item }: { item: CartItem }) => (
-    <View style={styles.cartItem}>
-      <View style={styles.cartItemInfo}>
-        <Text style={styles.cartItemName} numberOfLines={1}>
-          {item.name}
-        </Text>
-        <Text style={styles.cartItemPrice}>
-          ₹{item.price.toFixed(2)} × {item.quantity} ={" "}
-          <Text style={{ color: "#10b981", fontWeight: "700" }}>
-            ₹{item.lineTotal.toFixed(2)}
-          </Text>
-        </Text>
-      </View>
-      <View style={styles.cartItemControls}>
-        <TouchableOpacity
-          style={styles.qtyBtn}
-          onPress={() => handleUpdateQty(item.productId, item.quantity - 1)}
-        >
-          <Text style={styles.qtyBtnText}>−</Text>
-        </TouchableOpacity>
-        <Text style={styles.qtyText}>{item.quantity}</Text>
-        <TouchableOpacity
-          style={styles.qtyBtn}
-          onPress={() => handleUpdateQty(item.productId, item.quantity + 1)}
-        >
-          <Text style={styles.qtyBtnText}>+</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    <CartItemRow item={item} editable onUpdateQty={handleUpdateQty} />
   );
 
   return (
@@ -211,6 +290,9 @@ export default function ShoppingScreen() {
             </Text>
           </TouchableOpacity>
         )}
+        <TouchableOpacity style={styles.leaveBtn} onPress={handleLeaveAndCancel}>
+          <Text style={styles.leaveBtnText}>Leave</Text>
+        </TouchableOpacity>
       </View>
 
       {/* ── Status Bar ───────────────────────────── */}
@@ -319,7 +401,7 @@ export default function ShoppingScreen() {
         ListHeaderComponent={
           (cart?.items?.length ?? 0) > 0 ? (
             <Text style={styles.cartHeader}>🛒 Cart ({cart!.itemCount} items)</Text>
-          ) : null
+          ) : undefined
         }
         ListEmptyComponent={
           <View style={styles.emptyCartBox}>
@@ -357,6 +439,12 @@ export default function ShoppingScreen() {
           </TouchableOpacity>
         </View>
       )}
+
+      {/* ── Product Detail Bottom Sheet ──────────── */}
+      <ProductDetailSheet
+        product={detailProduct}
+        onClose={() => setDetailProduct(null)}
+      />
     </View>
   );
 }
@@ -388,6 +476,13 @@ const styles = StyleSheet.create({
   },
   cameraToggleActive: { backgroundColor: "#0284c7" },
   cameraToggleText: { color: "#fff", fontSize: 13, fontWeight: "600" },
+  leaveBtn: {
+    backgroundColor: "#7f1d1d",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  leaveBtnText: { color: "#fca5a5", fontSize: 13, fontWeight: "700" },
 
   /* status */
   statusBar: {
@@ -404,7 +499,7 @@ const styles = StyleSheet.create({
   /* camera */
   cameraContainer: { height: 220, position: "relative" },
   viewfinderOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     alignItems: "center",
     justifyContent: "center",
   },

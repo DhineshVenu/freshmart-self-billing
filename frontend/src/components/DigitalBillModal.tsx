@@ -19,6 +19,10 @@ interface DigitalBillModalProps {
   onConfirmPayment?: () => void;
   isConfirming?: boolean;
   onSessionComplete?: () => void;
+  /** Loyalty bounty earned for this order (shown when present). */
+  pointsEarned?: number;
+  /** Current wallet balance after earning (shown when present). */
+  walletBalance?: number;
 }
 
 export const DigitalBillModal: React.FC<DigitalBillModalProps> = ({
@@ -28,6 +32,8 @@ export const DigitalBillModal: React.FC<DigitalBillModalProps> = ({
   onConfirmPayment,
   isConfirming = false,
   onSessionComplete,
+  pointsEarned,
+  walletBalance,
 }) => {
   const [emailInput, setEmailInput] = useState(order.customerEmail || "");
   const [isSendingEmail, setIsSendingEmail] = useState(false);
@@ -187,6 +193,21 @@ export const DigitalBillModal: React.FC<DigitalBillModalProps> = ({
             <strong>₹{order.totalAmount.toFixed(2)}</strong>
           </div>
         </div>
+
+        {/* Loyalty Points Earned */}
+        {pointsEarned != null && (
+          <div className="receipt-points-section">
+            <div className="points-earned-banner">
+              <span className="points-emoji">🏆</span>
+              <div className="points-earned-text">
+                <strong>You earned {pointsEarned} Fresh Points!</strong>
+                {walletBalance != null && (
+                  <p>Your wallet balance is ₹{walletBalance.toFixed(2)}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Payment Confirmation Details */}
         <div className="receipt-footer-details">

@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import { User, IUser, UserRole } from "../models/User.js";
+import { AuditLog } from "../models/AuditLog.js";
 import { generateToken, AuthenticatedUser } from "../middleware/auth.js";
 import { LogExecution, ValidateInput, Singleton } from "../utils/index.js";
 import { mailService } from "./MailService.js";
@@ -90,6 +91,113 @@ export class AuthService {
     await user.save();
   }
 
+  /**
+   * Updates the calling user's profile (name, phone, dietary preferences).
+   */
+  @LogExecution
+  async updateProfile(
+    userId: string,
+    updates: { name?: string; phone?: string; dietaryPreferences?: { allergens?: string[]; diet?: string[] } }
+  ): Promise<{ name: string; email: string; role: string; phone: string; dietaryPreferences: { allergens: string[]; diet: string[] }; bountyPoints: number; bountyWalletBalance: number }> {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error("User not found.");
+    }
+
+    if (updates.name && updates.name.trim()) {
+      user.name = updates.name.trim();
+    }
+    if (updates.phone !== undefined) {
+      user.phone = updates.phone.trim();
+    }
+    if (updates.dietaryPreferences) {
+      user.dietaryPreferences = {
+        allergens: updates.dietaryPreferences.allergens ?? user.dietaryPreferences?.allergens ?? [],
+        diet: updates.dietaryPreferences.diet ?? user.dietaryPreferences?.diet ?? [],
+      };
+    }
+
+    await user.save();
+
+    return {
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      phone: user.phone || "",
+      dietaryPreferences: user.dietaryPreferences || { allergens: [], diet: [] },
+      bountyPoints: user.bountyPoints,
+      bountyWalletBalance: user.bountyWalletBalance,
+    };
+  }
+
+  /**
+   * Returns the full profile for the calling user (including bounty fields).
+   */
+  @LogExecution
+  async getProfile(userId: string): Promise<{ name: string; email: string; role: string; phone: string; dietaryPreferences: { allergens: string[]; diet: string[] }; bountyPoints: number; bountyWalletBalance: number }> {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error("User not found.");
+    }
+
+    return {
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      phone: user.phone || "",
+      dietaryPreferences: user.dietaryPreferences || { allergens: [], diet: [] },
+      bountyPoints: user.bountyPoints,
+      bountyWalletBalance: user.bountyWalletBalance,
+    };
+  }
+
+  /**
+   * Redeems bounty points for wallet credit. Each redeemed point removes 1 point
+   * and ₹0.50 from the wallet balance. Validates the user has enough.
+   */
+  @LogExecution
+  async redeemBounty(
+    userId: string,
+    pointsToRedeem: number
+  ): Promise<{ bountyPoints: number; bountyWalletBalance: number; redeemed: number; walletDebit: number }> {
+    if (!Number.isInteger(pointsToRedeem) || pointsToRedeem <= 0) {
+      throw new Error("Points to redeem must be a positive integer.");
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error("User not found.");
+    }
+
+    if (user.bountyPoints < pointsToRedeem) {
+      throw new Error(
+        `Insufficient Fresh Points. You have ${user.bountyPoints} points but tried to redeem ${pointsToRedeem}.`
+      );
+    }
+
+    const walletDebit = Number((pointsToRedeem * 0.5).toFixed(2));
+
+    user.bountyPoints -= pointsToRedeem;
+    user.bountyWalletBalance = Math.max(0, Number((user.bountyWalletBalance - walletDebit).toFixed(2)));
+    await user.save();
+
+    await AuditLog.create({
+      actorId: userId,
+      actorRole: user.role,
+      action: "BOUNTY_REDEEMED",
+      targetType: "User",
+      targetId: userId,
+      details: `Redeemed ${pointsToRedeem} Fresh Points for ₹${walletDebit} wallet credit`,
+    });
+
+    return {
+      bountyPoints: user.bountyPoints,
+      bountyWalletBalance: user.bountyWalletBalance,
+      redeemed: pointsToRedeem,
+      walletDebit,
+    };
+  }
+
   @LogExecution
   @ValidateInput
   async login(email: string, password: string): Promise<{ user: AuthenticatedUser; token: string }> {
@@ -119,10 +227,9 @@ export class AuthService {
   }
 
   async seedDefaultAccounts(): Promise<void> {
-    // Always seed if accounts are missing — the existence check below is the guard.
     // NODE_ENV=production no longer blocks seeding so Docker deployments work correctly.
 
-    const adminExists = await User.findOne({ role: "admin" });
+    const adminExists = await User.findOne({ email: "admin@freshmart.com" });
     if (!adminExists) {
       const adminPassword = process.env.DEMO_ADMIN_PASSWORD;
       if (adminPassword) {
@@ -140,7 +247,7 @@ export class AuthService {
       }
     }
 
-    const workerExists = await User.findOne({ role: "worker" });
+    const workerExists = await User.findOne({ email: "worker@freshmart.com" });
     if (!workerExists) {
       const workerPassword = process.env.DEMO_WORKER_PASSWORD;
       if (workerPassword) {

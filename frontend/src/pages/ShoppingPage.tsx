@@ -18,12 +18,14 @@ import {
   FiShoppingBag,
   FiClock,
   FiGrid,
+  FiX,
 } from "react-icons/fi";
 import {
   addToCart,
   deleteCartItem,
   getCart,
   getProducts,
+  getProductDetail,
   updateCartItemQty,
 } from "../services/cartApi";
 import {
@@ -84,6 +86,28 @@ function ShoppingPage({
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(
     null
   );
+
+  // Product detail panel state
+  const [detailProduct, setDetailProduct] = useState<ProductData | null>(null);
+
+  // NutriScore color mapping: A=green → E=red
+  const nutriScoreColor = (score?: string): string => {
+    switch (score) {
+      case "A": return "#22c55e";
+      case "B": return "#84cc16";
+      case "C": return "#eab308";
+      case "D": return "#f97316";
+      case "E": return "#ef4444";
+      default: return "#64748b";
+    }
+  };
+
+  // Auto-dismiss detail panel after 4 seconds
+  useEffect(() => {
+    if (!detailProduct) return;
+    const timer = setTimeout(() => setDetailProduct(null), 4000);
+    return () => clearTimeout(timer);
+  }, [detailProduct]);
 
   useEffect(() => {
     const initializeData = async () => {
@@ -168,6 +192,13 @@ function ShoppingPage({
         message: `Scanned & added to virtual cart ✓`,
         type: "success",
       });
+
+      // Fetch extended product detail for the info panel (non-blocking)
+      getProductDetail(codeToUse.trim())
+        .then((p) => setDetailProduct(p))
+        .catch(() => {
+          /* detail fetch is best-effort; ignore failures */
+        });
     } catch (err: unknown) {
       const msg =
         err instanceof Error ? err.message : "Unable to add product to cart";
@@ -546,6 +577,84 @@ function ShoppingPage({
         {/* Right Column: Live Server-Controlled Virtual Cart */}
         <section className="virtual-cart-col">
           <div className="virtual-cart-card">
+
+            {/* Product Detail Info Panel (auto-dismisses after 4s) */}
+            {detailProduct && (
+              <div className="product-detail-panel">
+                <button
+                  type="button"
+                  className="detail-panel-close"
+                  onClick={() => setDetailProduct(null)}
+                  aria-label="Close detail panel"
+                >
+                  <FiX />
+                </button>
+                <div className="detail-panel-header">
+                  <strong className="detail-panel-name">{detailProduct.name}</strong>
+                  <span className="detail-panel-cat">{detailProduct.category}</span>
+                </div>
+                <div className="detail-panel-body">
+                  {detailProduct.nutriScore && (
+                    <div className="detail-chip-row">
+                      <span className="detail-label">Nutri-Score</span>
+                      <span
+                        className="nutri-score-badge"
+                        style={{ background: nutriScoreColor(detailProduct.nutriScore) }}
+                      >
+                        {detailProduct.nutriScore}
+                      </span>
+                    </div>
+                  )}
+                  {detailProduct.calories != null && (
+                    <div className="detail-chip-row">
+                      <span className="detail-label">Calories</span>
+                      <span className="detail-value">{detailProduct.calories} kcal</span>
+                    </div>
+                  )}
+                  {detailProduct.allergens && detailProduct.allergens.length > 0 && (
+                    <div className="detail-chip-row">
+                      <span className="detail-label">Allergens</span>
+                      <div className="pill-list">
+                        {detailProduct.allergens.map((a) => (
+                          <span key={a} className="allergen-pill">{a}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {detailProduct.dietaryFlags && detailProduct.dietaryFlags.length > 0 && (
+                    <div className="detail-chip-row">
+                      <span className="detail-label">Diet</span>
+                      <div className="pill-list">
+                        {detailProduct.dietaryFlags.map((d) => (
+                          <span key={d} className="diet-pill">{d}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {detailProduct.aisle && (
+                    <div className="detail-chip-row">
+                      <span className="detail-label">Location</span>
+                      <span className="detail-value">
+                        {detailProduct.aisle}
+                        {detailProduct.shelf ? ` · ${detailProduct.shelf}` : ""}
+                        {detailProduct.bay ? ` · Bay ${detailProduct.bay}` : ""}
+                      </span>
+                    </div>
+                  )}
+                  {detailProduct.clearanceDiscountPercent && detailProduct.clearanceDiscountPercent > 0 && (
+                    <div className="detail-clearance-banner">
+                      🏷️ CLEARANCE {detailProduct.clearanceDiscountPercent}% OFF
+                      {detailProduct.expiryDate && (
+                        <span className="clearance-expiry">
+                          {" "}· Expires {new Date(detailProduct.expiryDate).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="cart-header-row">
               <div className="cart-title-left">
                 <FiShoppingCart className="cart-main-icon" />

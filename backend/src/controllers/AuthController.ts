@@ -90,6 +90,57 @@ export class AuthController extends BaseController {
     }
     this.sendSuccess(res, { user: req.user });
   };
+
+  /** GET /api/v1/auth/profile — full profile including bounty + dietary prefs */
+  profile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      if (!req.user) {
+        this.sendError(res, "Not authenticated", 401);
+        return;
+      }
+      const profile = await authService.getProfile(req.user.userId);
+      this.sendSuccess(res, { profile });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to load profile.";
+      this.sendError(res, msg, 400);
+    }
+  };
+
+  /** PATCH /api/v1/auth/profile — update name, phone, dietary preferences */
+  updateProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      if (!req.user) {
+        this.sendError(res, "Not authenticated", 401);
+        return;
+      }
+      const { name, phone, dietaryPreferences } = req.body;
+      const profile = await authService.updateProfile(req.user.userId, {
+        name,
+        phone,
+        dietaryPreferences,
+      });
+      this.sendSuccess(res, { profile }, 200, "Profile updated successfully.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to update profile.";
+      this.sendError(res, msg, 400);
+    }
+  };
+
+  /** POST /api/v1/auth/redeem-bounty — redeem Fresh Points for wallet credit (customer only) */
+  redeemBounty = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      if (!req.user) {
+        this.sendError(res, "Not authenticated", 401);
+        return;
+      }
+      const { pointsToRedeem } = req.body;
+      const result = await authService.redeemBounty(req.user.userId, pointsToRedeem);
+      this.sendSuccess(res, result, 200, "Bounty redeemed successfully.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to redeem bounty.";
+      this.sendError(res, msg, 400);
+    }
+  };
 }
 
 export const authController = new AuthController();

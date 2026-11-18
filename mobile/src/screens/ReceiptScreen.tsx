@@ -12,7 +12,8 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
 import type { RouteProp } from "@react-navigation/native";
 import { getOrderById } from "../services/checkoutApi";
-import { Order, RootStackParamList } from "../types";
+import { getProfile } from "../services/authApi";
+import { Order, CustomerProfile, RootStackParamList } from "../types";
 
 type Nav = StackNavigationProp<RootStackParamList, "Receipt">;
 type Route = RouteProp<RootStackParamList, "Receipt">;
@@ -25,13 +26,37 @@ export default function ReceiptScreen() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [profile, setProfile] = useState<CustomerProfile | null>(null);
 
   useEffect(() => {
     getOrderById(orderId)
-      .then(setOrder)
+      .then((o) => {
+        setOrder(o);
+        // Fetch loyalty profile to show the points-earned banner after a paid order
+        if (o.status === "PAID") {
+          getProfile()
+            .then(setProfile)
+            .catch(() => {});
+        }
+      })
       .catch((err) => setError((err as Error).message))
       .finally(() => setLoading(false));
   }, [orderId]);
+
+  // Profile access from the header
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Profile")}
+          style={{ paddingHorizontal: 14, paddingVertical: 6 }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Text style={{ fontSize: 18 }}>👤</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
 
   const handleShare = async () => {
     if (!order) return;
@@ -145,6 +170,23 @@ export default function ReceiptScreen() {
         </View>
       </View>
 
+      {/* Loyalty points earned banner */}
+      {order.status === "PAID" && (
+        <View style={styles.pointsBanner}>
+          <Text style={styles.pointsBannerEmoji}>🏆</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.pointsBannerTitle}>
+              You earned {Math.floor(order.totalAmount / 10)} Fresh Points!
+            </Text>
+            {profile && (
+              <Text style={styles.pointsBannerSub}>
+                Your wallet balance is ₹{profile.bountyWalletBalance.toFixed(2)}
+              </Text>
+            )}
+          </View>
+        </View>
+      )}
+
       {/* Actions */}
       <TouchableOpacity style={styles.shareBtn} onPress={handleShare}>
         <Text style={styles.shareBtnText}>📤 Share Receipt</Text>
@@ -152,6 +194,10 @@ export default function ReceiptScreen() {
 
       <TouchableOpacity style={styles.historyBtn} onPress={() => navigation.navigate("History")}>
         <Text style={styles.historyBtnText}>View All Receipts</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.profileBtn} onPress={() => navigation.navigate("Profile")}>
+        <Text style={styles.profileBtnText}>👤 Profile &amp; Fresh Points</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.homeBtn} onPress={() => navigation.navigate("QRScan")}>
@@ -240,6 +286,19 @@ const styles = StyleSheet.create({
   grandRow: { borderTopWidth: 1, borderTopColor: "#334155", paddingTop: 10, marginTop: 4 },
   grandLabel: { color: "#fff", fontWeight: "700", fontSize: 16 },
   grandValue: { color: "#10b981", fontWeight: "800", fontSize: 22 },
+  pointsBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: "#064e3b",
+    borderWidth: 1,
+    borderColor: "#10b981",
+    borderRadius: 12,
+    padding: 14,
+  },
+  pointsBannerEmoji: { fontSize: 26 },
+  pointsBannerTitle: { color: "#6ee7b7", fontWeight: "700", fontSize: 15 },
+  pointsBannerSub: { color: "#a7f3d0", fontSize: 13, marginTop: 2 },
   shareBtn: {
     backgroundColor: "#1e3a5f",
     borderWidth: 1,
@@ -258,6 +317,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   historyBtnText: { color: "#94a3b8", fontWeight: "600" },
+  profileBtn: {
+    backgroundColor: "#1e293b",
+    borderWidth: 1,
+    borderColor: "#10b981",
+    borderRadius: 12,
+    padding: 14,
+    alignItems: "center",
+  },
+  profileBtnText: { color: "#6ee7b7", fontWeight: "700", fontSize: 15 },
   homeBtn: {
     backgroundColor: "#047857",
     borderRadius: 12,

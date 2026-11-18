@@ -1,7 +1,7 @@
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import { authController } from "../controllers/AuthController.js";
-import { authenticateToken } from "../middleware/auth.js";
+import { authenticateToken, requireRole } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -27,5 +27,8 @@ router.post("/logout", authController.logout);
 router.post("/forgot-password", passwordResetRequestLimiter, authController.forgotPassword);
 router.post("/reset-password", passwordResetLimiter, authController.resetPassword);
 router.get("/me", authenticateToken, authController.me);
+router.get("/profile", authenticateToken, authController.profile);
+router.patch("/profile", authenticateToken, authController.updateProfile);
+router.post("/redeem-bounty", authenticateToken, requireRole("customer"), authController.redeemBounty);
 
 export default router;

@@ -9,6 +9,7 @@ export interface IOrderItemSnapshot {
   unit: string;
   quantity: number;
   lineTotal: number;
+  clearanceApplied?: boolean;
 }
 
 export type OrderStatus = "PENDING" | "PAID" | "CANCELLED";
@@ -44,6 +45,7 @@ const OrderItemSchema = new Schema<IOrderItemSnapshot>(
     unit: { type: String, default: "" },
     quantity: { type: Number, required: true, min: 1 },
     lineTotal: { type: Number, required: true },
+    clearanceApplied: { type: Boolean, default: false },
   },
   { _id: false }
 );

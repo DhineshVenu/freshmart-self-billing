@@ -56,6 +56,39 @@ export class ProductController extends BaseController {
     }
   };
 
+  /** GET /barcode/:barcode/detail — full product detail including nutrition/wayfinding */
+  public getDetailByBarcode = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const barcode = Array.isArray(req.params.barcode)
+        ? req.params.barcode[0]
+        : req.params.barcode;
+      const product = await this.productService.getProductDetailByBarcode(barcode);
+      this.sendSuccess(res, { product }, 200);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /** GET /admin/:id/detail — full product detail for admin (includes inactive) */
+  public getDetailById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const productId = Array.isArray(id) ? id[0] : id;
+      const product = await this.productService.getProductWithFullDetail(productId);
+      this.sendSuccess(res, { product }, 200);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public create = async (
     req: AuthenticatedRequest,
     res: Response

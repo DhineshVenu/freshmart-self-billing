@@ -146,6 +146,9 @@ export class CartService {
       throw new Error(`'${product.name}' is currently out of stock`);
     }
 
+    // Use effective (clearance) price if applicable
+    const unitPrice = SupermarketDomain.BarcodeEngine.effectivePrice(product);
+
     let cart = await Cart.findOne({ sessionCode: sessionCode.trim() });
     if (!cart) {
       cart = new Cart({
@@ -173,16 +176,16 @@ export class CartService {
     if (existingItemIndex >= 0) {
       cart.items[existingItemIndex].quantity = requestedTotalQty;
       cart.items[existingItemIndex].lineTotal = Number(
-        (product.price * requestedTotalQty).toFixed(2)
+        (unitPrice * requestedTotalQty).toFixed(2)
       );
     } else {
       const newItem: ICartItem = {
         productId: product._id as any,
         barcode: product.barcode,
         name: product.name,
-        price: product.price,
+        price: unitPrice,
         quantity,
-        lineTotal: Number((product.price * quantity).toFixed(2)),
+        lineTotal: Number((unitPrice * quantity).toFixed(2)),
       };
       cart.items.push(newItem);
     }

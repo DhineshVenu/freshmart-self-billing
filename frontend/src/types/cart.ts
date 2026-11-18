@@ -9,6 +9,17 @@ export interface ProductData {
   stockQty: number;
   active: boolean;
   imageUrl?: string;
+  // Extended fields (nutrition, wayfinding, clearance)
+  aisle?: string;
+  shelf?: string;
+  bay?: number;
+  mapCoordinates?: { x: number; y: number };
+  nutriScore?: "A" | "B" | "C" | "D" | "E";
+  allergens?: string[];
+  dietaryFlags?: string[];
+  calories?: number;
+  expiryDate?: string | Date | null;
+  clearanceDiscountPercent?: number;
 }
 
 export interface CartItemData {

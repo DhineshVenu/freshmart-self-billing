@@ -1,9 +1,13 @@
 import { Router } from "express";
 import { InventoryController } from "../controllers/InventoryController.js";
+import { productController } from "../controllers/ProductController.js";
 import { authenticateToken, requireRole } from "../middleware/index.js";
 
 const router = Router();
 const ctrl = new InventoryController();
+
+// GET /api/v1/inventory/products/:id  — full product detail (admin/store_manager)
+router.get("/products/:id", authenticateToken, requireRole("admin", "store_manager"), productController.getDetailById);
 
 // GET /api/v1/inventory/alerts
 router.get("/alerts", authenticateToken, requireRole("admin", "store_manager"), ctrl.getAlerts);

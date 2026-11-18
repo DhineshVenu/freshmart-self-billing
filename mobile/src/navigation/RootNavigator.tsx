@@ -15,6 +15,7 @@ import CartReviewScreen from "../screens/CartReviewScreen";
 import PaymentPendingScreen from "../screens/PaymentPendingScreen";
 import ReceiptScreen from "../screens/ReceiptScreen";
 import HistoryScreen from "../screens/HistoryScreen";
+import ProfileScreen from "../screens/ProfileScreen";
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -58,6 +59,7 @@ export default function RootNavigator() {
             <Stack.Screen name="PaymentPending" component={PaymentPendingScreen} options={{ title: "Payment", headerLeft: () => null }} />
             <Stack.Screen name="Receipt" component={ReceiptScreen} options={{ title: "Your Receipt" }} />
             <Stack.Screen name="History" component={HistoryScreen} options={{ title: "Purchase History" }} />
+            <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: "Profile" }} />
           </>
         )}
       </Stack.Navigator>

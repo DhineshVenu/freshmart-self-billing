@@ -9,6 +9,7 @@ import type { RouteProp } from "@react-navigation/native";
 import { processCheckout } from "../services/checkoutApi";
 import { useCartStore } from "../store/cartStore";
 import { CartItem, PaymentMethod, RootStackParamList } from "../types";
+import { CartItemRow } from "../components/CartItemRow";
 
 type Nav = StackNavigationProp<RootStackParamList, "CartReview">;
 type Route = RouteProp<RootStackParamList, "CartReview">;
@@ -40,16 +41,7 @@ export default function CartReviewScreen() {
   };
 
   const renderItem = ({ item }: { item: CartItem }) => (
-    <View style={styles.row}>
-      <View style={styles.rowLeft}>
-        <Text style={styles.itemName}>{item.name}</Text>
-        <Text style={styles.itemBarcode}>#{item.barcode} · {item.unit}</Text>
-      </View>
-      <View style={styles.rowRight}>
-        <Text style={styles.itemQty}>×{item.quantity}</Text>
-        <Text style={styles.itemTotal}>₹{item.lineTotal.toFixed(2)}</Text>
-      </View>
-    </View>
+    <CartItemRow item={item} />
   );
 
   return (

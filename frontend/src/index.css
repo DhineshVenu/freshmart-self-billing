@@ -1,29 +1,311 @@
+/* ==============================================================================
+   Fresh Mart — Modern Enterprise & Supermarket Design System
+   ============================================================================== */
+
 :root {
-  font-family:
-    Inter, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
-  color: #183a2e;
-  background: #f4f8f6;
+  --font-sans: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Theme Color Palette */
+  --bg-base: #080c14;
+  --bg-surface: #0f172a;
+  --bg-surface-elevated: #131d31;
+  --border-subtle: #1e293b;
+  --border-strong: #334155;
+
+  /* Brand Accents */
+  --emerald-500: #10b981;
+  --emerald-600: #059669;
+  --emerald-400: #34d399;
+  --emerald-glow: rgba(16, 185, 129, 0.16);
+
+  --cyan-500: #06b6d4;
+  --cyan-glow: rgba(6, 182, 212, 0.16);
+
+  --purple-500: #8b5cf6;
+  --purple-glow: rgba(139, 92, 246, 0.16);
+
+  --amber-500: #f59e0b;
+  --rose-500: #f43f5e;
+
+  /* Typography Colors */
+  --text-main: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  font-family: var(--font-sans);
+  color: var(--text-main);
+  background: var(--bg-base);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 * {
   box-sizing: border-box;
 }
 
-html {
-  min-width: 320px;
-  min-height: 100%;
-}
-
-body {
+html, body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
+  padding: 0;
+  background: var(--bg-base);
+  color: var(--text-main);
 }
 
-button,
-input {
+/* Custom WebKit Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #080c14;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+button, input, select, textarea {
   font: inherit;
+}
+
+/* ── App Shell & Responsive Layout ─────────────────────────────────────────── */
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background: var(--bg-base);
+}
+
+.app-main-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+}
+
+.app-mobile-topbar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: #0b1120;
+  border-bottom: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-menu-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #f8fafc;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mobile-menu-trigger:hover {
+  background: var(--emerald-glow);
+  border-color: var(--emerald-500);
+  color: var(--emerald-400);
+}
+
+.mobile-brand-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-brand-pill .brand-icon {
+  width: 28px;
+  height: 28px;
+  background: var(--emerald-500);
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  color: #ffffff;
+}
+
+.mobile-brand-pill .brand-text {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #f8fafc;
+}
+
+.mobile-role-badge {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: #1e293b;
+  color: var(--emerald-400);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+@media (max-width: 900px) {
+  .app-mobile-topbar {
+    display: flex;
+  }
+}
+
+.app-page-container {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Modern Table Standards & Alignment Fixes ──────────────────────────────── */
+/* Wraps tables with horizontal scroll and responsive containment */
+.table-wrapper,
+.table-card,
+.admin-card:has(table),
+.inv-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  margin-bottom: 20px;
+}
+
+/* Core table layout */
+table.admin-table,
+table.dash-table,
+table.inv-table,
+table.store-table,
+table.data-table {
+  width: 100%;
+  min-width: 720px; /* Prevents columns from overlapping or squishing */
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+  text-align: left;
+}
+
+/* Sticky Header */
+table.admin-table thead,
+table.dash-table thead,
+table.inv-table thead,
+table.store-table thead,
+table.data-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #111a2e;
+}
+
+table.admin-table thead th,
+table.dash-table thead th,
+table.inv-table thead th,
+table.store-table thead th,
+table.data-table thead th {
+  padding: 14px 16px;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  border-bottom: 2px solid var(--border-subtle);
+  background: #111a2e;
+  white-space: nowrap;
+}
+
+/* Data rows */
+table.admin-table tbody td,
+table.dash-table tbody td,
+table.inv-table tbody td,
+table.store-table tbody td,
+table.data-table tbody td {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  vertical-align: middle;
+}
+
+table.admin-table tbody tr:hover,
+table.dash-table tbody tr:hover,
+table.inv-table tbody tr:hover,
+table.store-table tbody tr:hover,
+table.data-table tbody tr:hover {
+  background: rgba(16, 185, 129, 0.04);
+}
+
+table.admin-table tbody tr:last-child td,
+table.dash-table tbody tr:last-child td,
+table.inv-table tbody tr:last-child td,
+table.store-table tbody tr:last-child td,
+table.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Alignments by column type */
+th.col-num, td.col-num,
+th.col-price, td.col-price,
+th.col-qty, td.col-qty {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+th.col-center, td.col-center,
+th.col-action, td.col-action,
+th.col-status, td.col-status {
+  text-align: center;
+}
+
+/* Row action buttons container */
+.row-action-group {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+/* Modern inputs and buttons inside pages */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+select,
+textarea {
+  background: #0b1120;
+  border: 1px solid var(--border-strong);
+  color: var(--text-main);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 13px;
+  transition: all 0.15s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--emerald-500);
+  box-shadow: 0 0 0 2px var(--emerald-glow);
 }

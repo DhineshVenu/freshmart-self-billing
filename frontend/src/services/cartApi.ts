@@ -20,6 +20,15 @@ export const getProducts = async (category?: string): Promise<ProductData[]> => 
   return result.data.products;
 };
 
+export const getProductDetail = async (barcode: string): Promise<ProductData> => {
+  const response = await fetch(`${API_URL}/products/barcode/${encodeURIComponent(barcode)}/detail`);
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.message || "Unable to fetch product detail");
+  }
+  return result.data.product as ProductData;
+};
+
 export const getCart = async (sessionCode: string): Promise<CartData> => {
   const response = await fetch(
     `${API_URL}/carts/current?sessionCode=${encodeURIComponent(sessionCode)}`

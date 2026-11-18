@@ -113,3 +113,18 @@ export async function getSessionOrders(sessionCode: string): Promise<OrderData[]
     return [];
   }
 }
+
+/**
+ * Fetch the authenticated customer's own order history (requires JWT).
+ */
+export async function getMyOrders(): Promise<OrderData[]> {
+  const token = sessionStorage.getItem("auth_token");
+  const response = await fetch(`${API_BASE_URL}/orders/mine`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  const body = await response.json();
+  if (!response.ok || !body.success) {
+    return [];
+  }
+  return body.data.orders || [];
+}

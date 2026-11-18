@@ -969,3 +969,139 @@
 .open-pending-bill-btn:hover {
   background: #b45309;
 }
+
+/* ── Product Detail Info Panel ─────────────────────────────── */
+.product-detail-panel {
+  position: relative;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-left: 4px solid #0284c7;
+  border-radius: 12px;
+  padding: 16px 18px 14px 18px;
+  margin-bottom: 16px;
+  animation: detail-slide-in 0.25s ease-out;
+}
+
+@keyframes detail-slide-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.detail-panel-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #e2e8f0;
+  border: none;
+  border-radius: 6px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748b;
+  font-size: 14px;
+}
+.detail-panel-close:hover { background: #cbd5e1; color: #0f172a; }
+
+.detail-panel-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-right: 28px;
+}
+
+.detail-panel-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.detail-panel-cat {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.detail-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail-chip-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.detail-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+  min-width: 72px;
+}
+
+.detail-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.nutri-score-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.pill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.allergen-pill {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.diet-pill {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.detail-clearance-banner {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #c2410c;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.clearance-expiry {
+  font-weight: 600;
+  color: #9a3412;
+}
